@@ -1,4 +1,4 @@
-import visualization as VZ
+from utilities import visualization as VZ
 
 
 def add_standard_info(project_variable, which, parameters):
