@@ -214,29 +214,33 @@ class ProjectVariable(object):
         # ----------------------------------------------------------------------------------------------------------
         # XAI stuff for visualization
         # ----------------------------------------------------------------------------------------------------------
-        self.do_xai = False
+        self._do_xai = False
         # options: 'erhan2009', 'zeiler2014', 'gradient_method'
-        self.which_methods = ['erhan2009']
+        self._which_methods = ['erhan2009']
         # options: 'conv1', 'conv2'
-        self.which_layers = ['conv1']
+        self._which_layers = ['conv1']
         # options: [np.arange(6), np.arange(16)]
         # each index maps to the respective layer
-        self.which_channels = [np.array([0, 1])]
+        self._which_channels = [np.array([0, 1])]
 
         # ----------------------------------------------------------------------------------------------------------
         # NAS stuff, optimized training
         # ----------------------------------------------------------------------------------------------------------
         # turn on or off semi-automated architecture search
-        self.nas = False
+        self._nas = False
         # stop when confusion matrix has collapsed
-        self.stop_at_collapse = False
+        self._stop_at_collapse = False
         # stop when validation accuracy is going down + validation loss is going up
-        self.early_stopping = False
+        self._early_stopping = False
         # for GA in NAS
-        self.genome = None
+        self._genome = None
         # to identify which individual it is in the population
         self._individual_number = None
 
+        # ----------------------------------------------------------------------------------------------------------
+        # NiN idea
+        # ----------------------------------------------------------------------------------------------------------
+        self._nin = False
 
 
     @property
@@ -947,3 +951,11 @@ class ProjectVariable(object):
     @individual_number.setter
     def individual_number(self, value):
         self._individual_number = value
+
+    @property
+    def nin(self):
+        return self._nin
+    
+    @nin.setter
+    def nin(self, value):
+        self._nin = value

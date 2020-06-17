@@ -2,6 +2,7 @@ import torch
 from torch.nn.modules import conv
 from torch.nn import functional as F
 from torch.nn.modules.utils import _triple
+from models.mlp import MLP_basic
 
 
 class ConvTTN3d(conv._ConvNd):
@@ -25,14 +26,27 @@ class ConvTTN3d(conv._ConvNd):
         # default: k0_init = 'normal'
         self.first_weight = torch.nn.init.normal_(first_w)
 
-        self.scale = torch.nn.Parameter(
-            torch.nn.init.ones_(torch.zeros((self.kernel_size[0]-1, self.out_channels))))
-        self.rotate = torch.nn.Parameter(
-            torch.zeros((self.kernel_size[0]-1, self.out_channels)))
-        self.translate_x = torch.nn.Parameter(
-            torch.zeros((self.kernel_size[0]-1, self.out_channels)))
-        self.translate_y = torch.nn.Parameter(
-            torch.zeros((self.kernel_size[0]-1, self.out_channels)))
+        if project_variable.nin:
+            # create 4 mlp
+            self.mlp_s = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
+            self.mlp_r = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
+            self.mlp_x = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
+            self.mlp_y = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
+
+            self.scale = torch.zeros(1)
+            self.rotate = torch.zeros(1)
+            self.translate_x = torch.zeros(1)
+            self.translate_y = torch.zeros(1)
+
+        else:
+            self.scale = torch.nn.Parameter(
+                torch.nn.init.ones_(torch.zeros((self.kernel_size[0]-1, self.out_channels))))
+            self.rotate = torch.nn.Parameter(
+                torch.zeros((self.kernel_size[0]-1, self.out_channels)))
+            self.translate_x = torch.nn.Parameter(
+                torch.zeros((self.kernel_size[0]-1, self.out_channels)))
+            self.translate_y = torch.nn.Parameter(
+                torch.zeros((self.kernel_size[0]-1, self.out_channels)))
 
     def make_affine_matrix(self, scale, rotate, translate_x, translate_y):
         # if out_channels is used, the shape of the matrix returned is different
@@ -96,6 +110,8 @@ class ConvTTN3d(conv._ConvNd):
 
     # replace out_channels with transformation_groups <- remove in a bit
     def forward(self, input, device):
+
+        # 
 
         grid = torch.zeros((1, self.out_channels, self.kernel_size[1], self.kernel_size[2], 2))
 
