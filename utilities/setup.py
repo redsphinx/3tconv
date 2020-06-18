@@ -5,7 +5,7 @@ import torch
 import os
 
 from config import paths as PP
-from models.resnet18 import ResNet18Explicit, ResNet18Explicit3DConv
+from models.resnet18 import ResNet18Explicit, ResNet18Explicit3DConv, ResNet18ExplicitNiN
 from models.googlenet import Googlenet3TConv_explicit, Googlenet3DConv_explicit
 
 
@@ -297,7 +297,7 @@ def get_model(project_variable):
             model.conv59.weight = torch.nn.Parameter(tmp_googlenet.inception5b.branch4[1].conv.weight.unsqueeze(2))
 
     if project_variable.model_number == 50:
-        model = ResNet18Explicit(project_variable)
+        model = ResNet18ExplicitNiN(project_variable)
         if type(project_variable.load_model) != bool and not project_variable.load_model is None:
             model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
         elif project_variable.load_model:
@@ -326,7 +326,6 @@ def get_model(project_variable):
             model.conv20.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[1].conv2.weight.unsqueeze(2))
 
         # set weights of 3D conv to not require grad
-        # TODO: check gradients for srxy -> should be False,, and the mlp -> should be True
         model.conv1.weight.requires_grad = False
         model.conv2.weight.requires_grad = False
         model.conv3.weight.requires_grad = False

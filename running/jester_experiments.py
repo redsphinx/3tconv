@@ -333,10 +333,11 @@ def e36_conv3T_jester():
 
 def e37_conv3T_jester():
     set_init_1()
+    project_variable.nin = True
     project_variable.model_number = 50 # RN18 3T
     project_variable.experiment_number = 37
     project_variable.sheet_number = 22
-    project_variable.device = 0
+    project_variable.device = 1
     project_variable.end_epoch = 5
     project_variable.repeat_experiments = 1
     project_variable.batch_size = 1

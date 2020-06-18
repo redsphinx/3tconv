@@ -29,7 +29,7 @@ class ConvTTN3d(conv._ConvNd):
         if project_variable.nin:
             # create 4 mlp
 
-            self.mlp = MLP_basic(ksize=(kernel_size[1], kernel_size[2]), t_out=kernel_size[0], k_in_ch=in_channels)
+            self.mlp = MLP_basic(ksize=(kernel_size[1], kernel_size[2]), t_out=kernel_size[0]-1, k_in_ch=in_channels)
 
             # this is a tensor, NOT a parameter
             # time x channels
@@ -114,7 +114,7 @@ class ConvTTN3d(conv._ConvNd):
         # TODO: add identity as initialization
 
         for i in range(self.out_channels):
-            _tmp = self.mlp(og_datapoint, self.first_weight[i, :, 0])
+            _tmp = self.mlp(og_datapoint, self.first_weight[i, :, 0].unsqueeze(0))
 
             for t in range(self.kernel_size[0]-1):
                 self.scale[t, i] = _tmp[0][t]
