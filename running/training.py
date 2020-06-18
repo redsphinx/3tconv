@@ -53,6 +53,8 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
             elif project_variable.model_number in [25]:
                 aux1, aux2, predictions = my_model(data)
                 assert aux1 is not None and aux2 is not None
+            elif project_variable.model_number in [50]:
+                predictions = my_model(data, device, og_datapoint=data)
 
             else:
                 predictions = my_model(data)

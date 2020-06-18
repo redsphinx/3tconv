@@ -28,16 +28,18 @@ class ConvTTN3d(conv._ConvNd):
 
         if project_variable.nin:
             # create 4 mlp
-            self.mlp_s = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
-            self.mlp_r = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
-            self.mlp_x = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
-            self.mlp_y = MLP_basic(inp_feat=33, t_out=self.kernel_size[0]-1)
 
-            self.scale = torch.zeros(1)
-            self.rotate = torch.zeros(1)
-            self.translate_x = torch.zeros(1)
-            self.translate_y = torch.zeros(1)
+            self.mlp = MLP_basic(ksize=(kernel_size[1], kernel_size[2]), t_out=kernel_size[0], k_in_ch=in_channels)
 
+            # this is a tensor, NOT a parameter
+            # time x channels
+            _time = self.kernel_size[0]-1
+            _ch = self.out_channels
+            self.scale = torch.zeros((_time, _ch))
+            self.rotate = torch.zeros((_time, _ch))
+            self.translate_x = torch.zeros((_time, _ch))
+            self.translate_y = torch.zeros((_time, _ch))
+            
         else:
             self.scale = torch.nn.Parameter(
                 torch.nn.init.ones_(torch.zeros((self.kernel_size[0]-1, self.out_channels))))
@@ -107,12 +109,26 @@ class ConvTTN3d(conv._ConvNd):
             grid = torch.cat((grid, tmp.unsqueeze(0)), 0)
 
         return grid
+    
+    def generate_srxy(self, og_datapoint):
+        # TODO: add identity as initialization
 
-    # replace out_channels with transformation_groups <- remove in a bit
-    def forward(self, input, device):
+        for i in range(self.out_channels):
+            _tmp = self.mlp(og_datapoint, self.first_weight[i, :, 0])
 
-        # 
+            for t in range(self.kernel_size[0]-1):
+                self.scale[t, i] = _tmp[0][t]
+                self.rotate[t, i] = _tmp[1][t]
+                self.translate_x[t, i] = _tmp[2][t]
+                self.translate_y[t, i] = _tmp[3][t]
 
+    
+    def forward(self, input_, device, og_datapoint=None):
+        
+        if self.project_variable.nin:
+            assert og_datapoint is not None
+            self.generate_srxy(og_datapoint)
+            
         grid = torch.zeros((1, self.out_channels, self.kernel_size[1], self.kernel_size[2], 2))
 
         theta = torch.zeros((1, self.out_channels, 2, 3))
@@ -149,5 +165,5 @@ class ConvTTN3d(conv._ConvNd):
 
         self.weight = torch.nn.Parameter(new_weight)
 
-        y = F.conv3d(input, new_weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        y = F.conv3d(input_, new_weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         return y

@@ -48,6 +48,9 @@ def run(project_variable, all_data, my_model, device):
                     aux1, aux2, predictions = my_model(data, None, False)
                     assert aux1 is None and aux2 is None
 
+                elif project_variable.model_number in [50]:
+                    predictions = my_model(data, device, og_datapoint=data)
+
                 else:
                     predictions = my_model(data)
                 # print(predictions)
