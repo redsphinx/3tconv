@@ -21,6 +21,7 @@ class MLP_basic(torch.nn.Module):
         self.fc_y = torch.nn.Linear(in_features=10, out_features=t_out)
 
     def forward(self, input_, k0):
+        # reduced_input = F.interpolate(input_, (30, 7, 9))
         reduced_input = F.interpolate(input_, (30, 7, 9), mode='trilinear', align_corners=True)
 
         h1 = self.conv1(reduced_input)
