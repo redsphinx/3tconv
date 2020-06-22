@@ -10,7 +10,6 @@ from nvidia.dali.plugin.pytorch import DALIGenericIterator
 from config import paths as PP
 
 
-
 def get_data(which, everything):
     ind = everything[0].index(which)
     return everything[1][ind]
@@ -28,8 +27,6 @@ def load_jester(project_variable, seed):
     all_data = []
     FRAMES = project_variable.load_num_frames  # 30
 
-
-    # def simple_parallel_load():
 
     def load(which, dp):
         label_path = os.path.join(PP.jester_location, 'labels_%s.npy' % which)

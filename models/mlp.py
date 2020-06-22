@@ -20,15 +20,16 @@ class MLP_basic(torch.nn.Module):
         self.fc_x = torch.nn.Linear(in_features=10, out_features=t_out)
         self.fc_y = torch.nn.Linear(in_features=10, out_features=t_out)
 
-    def forward(self, input_, k0):
+    def forward(self, data, k0):
         # reduced_input = F.interpolate(input_, (30, 7, 9))
-        reduced_input = F.interpolate(input_, (30, 7, 9), mode='trilinear', align_corners=True)
+        # reduced_input = F.interpolate(input_, (30, 7, 9), mode='trilinear', align_corners=True)
 
-        h1 = self.conv1(reduced_input)
+        h1 = self.conv1(data)
         h1 = self.bn1(h1)
 
         h2 = self.conv2(k0)
         h2 = h2.unsqueeze(0)
+        h2 = h2.repeat(h1.shape[0], 1, 1, 1, 1)
 
         h = torch.cat((h1, h2), 2)
 

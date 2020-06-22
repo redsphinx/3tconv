@@ -1,7 +1,7 @@
 import os
 import shutil
 import numpy as np
-from torch.nn import CrossEntropyLoss
+from torch.nn import CrossEntropyLoss, functional as F
 from torchviz import make_dot
 import torch
 
@@ -401,3 +401,8 @@ def opt_mkdir(the_path):
 def opt_makedirs(the_path):
     if not os.path.exists(the_path):
         os.makedirs(the_path)
+
+
+def resize_data(data):  # torch.Size([1, 3, 30, 150, 224])
+    reduced_input = F.interpolate(data, (30, 7, 9), mode='trilinear', align_corners=True)  # torch.Size([1, 3, 30, 7, 9])
+    return reduced_input

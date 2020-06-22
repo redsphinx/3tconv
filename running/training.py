@@ -25,17 +25,26 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
 
             data = data_and_labels[0]['data']
             labels = data_and_labels[0]['labels']
-
+            
             # transpose data
             data = data.permute(0, 4, 1, 2, 3)
             # convert to floattensor
-            data = data.type(torch.float32)
+            data = data.type(torch.float32)  # torch.Size([1, 3, 30, 150, 224])
+
+            if project_variable.nin:
+                resized_data = U.resize_data(data)
 
             # data shape: b, c, d, h, w
             data = data / 255
             data[:, 0, :, :, :] = (data[:, 0, :, :, :] - 0.485) / 0.229
             data[:, 1, :, :, :] = (data[:, 1, :, :, :] - 0.456) / 0.224
             data[:, 2, :, :, :] = (data[:, 2, :, :, :] - 0.406) / 0.225
+            
+            if project_variable.nin:
+                resized_data = resized_data / 255
+                resized_data[:, 0, :, :, :] = (resized_data[:, 0, :, :, :] - 0.485) / 0.229
+                resized_data[:, 1, :, :, :] = (resized_data[:, 1, :, :, :] - 0.456) / 0.224
+                resized_data[:, 2, :, :, :] = (resized_data[:, 2, :, :, :] - 0.406) / 0.225
 
             # data = (data/255 - project_variable.imnet_mean) / project_variable.imnet_stds
             labels = labels.type(torch.long)
@@ -54,7 +63,8 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
                 aux1, aux2, predictions = my_model(data)
                 assert aux1 is not None and aux2 is not None
             elif project_variable.model_number in [50]:
-                predictions = my_model(data, device, og_datapoint=data)
+                assert project_variable.nin
+                predictions = my_model(data, device, resized_datapoint=resized_data)
 
             else:
                 predictions = my_model(data)
@@ -65,7 +75,7 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
             else:
                 loss = U.calculate_loss(project_variable, predictions, labels)
             # THCudaCheck FAIL file=/pytorch/aten/src/THC/THCGeneral.cpp line=383 error=11 : invalid argument
-            loss.backward()
+            loss.backward(retain_graph=True)
 
             my_optimizer.step()
 
