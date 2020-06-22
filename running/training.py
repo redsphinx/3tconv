@@ -76,6 +76,7 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
                 loss = U.calculate_loss(project_variable, predictions, labels)
             # THCudaCheck FAIL file=/pytorch/aten/src/THC/THCGeneral.cpp line=383 error=11 : invalid argument
             loss.backward(retain_graph=True)
+            # loss.backward()
 
             my_optimizer.step()
 

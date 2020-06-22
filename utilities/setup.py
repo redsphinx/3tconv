@@ -296,7 +296,7 @@ def get_model(project_variable):
             model.conv58.weight = torch.nn.Parameter(tmp_googlenet.inception5b.branch3[1].conv.weight.unsqueeze(2).repeat_interleave(3, dim=2) / div2)
             model.conv59.weight = torch.nn.Parameter(tmp_googlenet.inception5b.branch4[1].conv.weight.unsqueeze(2))
 
-    if project_variable.model_number == 50:
+    elif project_variable.model_number == 50:
         model = ResNet18ExplicitNiN(project_variable)
         if type(project_variable.load_model) != bool and not project_variable.load_model is None:
             model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))

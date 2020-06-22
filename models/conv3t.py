@@ -2,13 +2,13 @@ import torch
 from torch.nn.modules import conv
 from torch.nn import functional as F, ModuleList
 from torch.nn.modules.utils import _triple
-from models.mlp import MLP_basic
+from models.mlp import MLP_basic, MLP_per_channel
 
 
 class ConvTTN3d(conv._ConvNd):
     def __init__(self, in_channels, out_channels, kernel_size, project_variable, transformation_groups=None,
                  k0_groups=None, transformations_per_filter=None, stride=1, padding=0, dilation=1, groups=1, bias=True,
-                 padding_mode='zeros'):
+                 padding_mode='zeros', ksize=None, fc_in=None):
         kernel_size = _triple(kernel_size)
         stride = _triple(stride)
         padding = _triple(padding)
@@ -28,10 +28,9 @@ class ConvTTN3d(conv._ConvNd):
 
         if project_variable.nin:
 
-            # TODO: create MLP for each channel
-            # self.all_mlps = ModuleList([MLP_basic() for i in range(out_channels)])
+            self.all_mlps = ModuleList([MLP_per_channel(in_channels, ksize, kernel_size[0]-1, fc_in) for i in range(out_channels)])
 
-            self.mlp = MLP_basic(ksize=(kernel_size[1], kernel_size[2]), t_out=kernel_size[0]-1, k_in_ch=in_channels)
+            # self.mlp = MLP_basic(ksize=(kernel_size[1], kernel_size[2]), t_out=kernel_size[0]-1, k_in_ch=in_channels)
 
             # this is a tensor, NOT a parameter
             # time x channels
@@ -113,10 +112,9 @@ class ConvTTN3d(conv._ConvNd):
         return grid
     
     def generate_srxy(self, resized_datapoint):
-        # TODO: add identity as initialization
-
         for i in range(self.out_channels):
-            _tmp = self.mlp(resized_datapoint, self.first_weight[i, :, 0].unsqueeze(0))
+            _tmp = self.all_mlps[i](resized_datapoint)
+            # _tmp = self.mlp(resized_datapoint, self.first_weight[i, :, 0].unsqueeze(0))
 
             for t in range(self.kernel_size[0]-1):
                 self.scale[t, i] = _tmp[0][t]
@@ -124,12 +122,23 @@ class ConvTTN3d(conv._ConvNd):
                 self.translate_x[t, i] = _tmp[2][t]
                 self.translate_y[t, i] = _tmp[3][t]
 
+        # for i in range(self.out_channels):
+        #     _tmp = self.mlp(resized_datapoint, self.first_weight[i, :, 0].unsqueeze(0))
+        #
+        #     for t in range(self.kernel_size[0]-1):
+        #         self.scale[t, i] = _tmp[0][t]
+        #         self.rotate[t, i] = _tmp[1][t]
+        #         self.translate_x[t, i] = _tmp[2][t]
+        #         self.translate_y[t, i] = _tmp[3][t]
+
     
     def forward(self, input_, device, resized_datapoint=None):
         
         if self.project_variable.nin:
-            assert resized_datapoint is not None
-            self.generate_srxy(resized_datapoint)
+            if resized_datapoint is None:
+                self.generate_srxy(input_)
+            else:
+                self.generate_srxy(resized_datapoint)
             
         grid = torch.zeros((1, self.out_channels, self.kernel_size[1], self.kernel_size[2], 2))
 
