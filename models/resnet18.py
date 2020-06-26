@@ -446,7 +446,10 @@ class ResNet18ExplicitNiN(torch.nn.Module):
     def __init__(self, pv):
         super(ResNet18ExplicitNiN, self).__init__()
         # self.conv1_relu = ConvolutionBlock(3, 64, pv)
-        self.conv1 = ConvTTN3d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3, project_variable=pv,
+
+        # TODO: fix the dimensions such that everything lines up
+
+        self.conv1 = ConvTTN3d(in_channels=3, out_channels=64, kernel_size=7, stride=(1, 2, 2), padding=3, project_variable=pv,
                                bias=False, ksize=(3, 30), fc_in=1, hw=(150, 224))
         self.bn1 = BatchNorm3d(64)
 
@@ -471,7 +474,7 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         # self.res3a_relu = ResidualBlockB(64, 128, pv)
         self.conv6 = Conv3d(in_channels=64, out_channels=128, kernel_size=1, stride=2, bias=False)
         self.bn6 = BatchNorm3d(128)
-        self.conv7 = ConvTTN3d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1,
+        self.conv7 = ConvTTN3d(in_channels=64, out_channels=128, kernel_size=3, stride=(1, 2, 2), padding=1,
                                project_variable=pv, bias=False, ksize=(64, 8), fc_in=1, hw=(38, 56))
         self.bn7 = BatchNorm3d(128)
         self.conv8 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv,
@@ -489,9 +492,11 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         # self.res4a_relu = ResidualBlockB(128, 256, pv)
         self.conv11 = Conv3d(in_channels=128, out_channels=256, kernel_size=1, stride=2, bias=False)
         self.bn11 = BatchNorm3d(256)
-        self.conv12 = ConvTTN3d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1,
+        self.conv12 = ConvTTN3d(in_channels=128, out_channels=256, kernel_size=3, stride=(1, 2, 2), padding=1,
                                 project_variable=pv, bias=False, ksize=(128, 4), fc_in=1, hw=(19, 28))
         self.bn12 = BatchNorm3d(256)
+
+        # TODO: I think there's division by zero when you do average pooling over the time dimension after padding
         self.conv13 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv,
                                 bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
         self.bn13 = BatchNorm3d(256)
@@ -507,7 +512,7 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         # self.res5a_relu = ResidualBlockB(256, 512, pv)
         self.conv16 = Conv3d(in_channels=256, out_channels=512, kernel_size=1, stride=2, bias=False)
         self.bn16 = BatchNorm3d(512)
-        self.conv17 = ConvTTN3d(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1,
+        self.conv17 = ConvTTN3d(in_channels=256, out_channels=512, kernel_size=3, stride=(1, 2, 2), padding=1,
                                 project_variable=pv, bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
         self.bn17 = BatchNorm3d(512)
         self.conv18 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv,
@@ -569,7 +574,7 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         h1 = self.bn10(h1)
         h = h1 + h
         h = relu(h)
-
+        # TODO: I think there's division by zero when you do average pooling over the time dimension after padding
         # h = self.res4a_relu(h, device)  # , resized_datapoint)
         temp = self.conv11(h)
         temp = self.bn11(temp)
