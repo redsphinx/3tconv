@@ -15,6 +15,7 @@ from config import paths as PP
 
 
 def run(project_variable):
+    # torch.autograd.set_detect_anomaly(True)
 
     START_LR = project_variable.learning_rate
     if project_variable.theta_learning_rate is not None:

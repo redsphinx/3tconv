@@ -2,13 +2,13 @@ import torch
 from torch.nn.modules import conv
 from torch.nn import functional as F, ModuleList
 from torch.nn.modules.utils import _triple
-from models.mlp import MLP_basic, MLP_per_channel
 
+from models.mlp import MLP_basic, MLP_per_channel
 
 class ConvTTN3d(conv._ConvNd):
     def __init__(self, in_channels, out_channels, kernel_size, project_variable, transformation_groups=None,
                  k0_groups=None, transformations_per_filter=None, stride=1, padding=0, dilation=1, groups=1, bias=True,
-                 padding_mode='zeros', ksize=None, fc_in=None):
+                 padding_mode='zeros', ksize=None, fc_in=None, hw=None):
         kernel_size = _triple(kernel_size)
         stride = _triple(stride)
         padding = _triple(padding)
@@ -28,7 +28,8 @@ class ConvTTN3d(conv._ConvNd):
 
         if project_variable.nin:
 
-            self.all_mlps = ModuleList([MLP_per_channel(in_channels, ksize, kernel_size[0]-1, fc_in) for i in range(out_channels)])
+
+            self.all_mlps = ModuleList([MLP_per_channel(in_channels, ksize, kernel_size[0]-1, fc_in, hw) for i in range(out_channels)])
 
             # self.mlp = MLP_basic(ksize=(kernel_size[1], kernel_size[2]), t_out=kernel_size[0]-1, k_in_ch=in_channels)
 
@@ -36,10 +37,15 @@ class ConvTTN3d(conv._ConvNd):
             # time x channels
             _time = self.kernel_size[0]-1
             _ch = self.out_channels
-            self.scale = torch.zeros((_time, _ch))
-            self.rotate = torch.zeros((_time, _ch))
-            self.translate_x = torch.zeros((_time, _ch))
-            self.translate_y = torch.zeros((_time, _ch))
+            self.scale = torch.zeros((_time, 1))  # , _ch))
+            self.rotate = torch.zeros((_time, 1))  # , _ch))
+            self.translate_x = torch.zeros((_time, 1))  # , _ch))
+            self.translate_y = torch.zeros((_time, 1))  # , _ch))
+
+            self.og_scale = torch.zeros((_time, 1))
+            self.og_rotate = torch.zeros((_time, 1))
+            self.og_translate_x = torch.zeros((_time, 1))
+            self.og_translate_y = torch.zeros((_time, 1))
             
         else:
             self.scale = torch.nn.Parameter(
@@ -81,6 +87,8 @@ class ConvTTN3d(conv._ConvNd):
         for i in range(self.kernel_size[0]-1):
             tmp = self.make_affine_matrix(self.scale[i], self.rotate[i], self.translate_x[i], self.translate_y[i])
             tmp = tmp.cuda(device)
+            if theta[0].shape != tmp.shape:
+                print('not match')
             theta = torch.cat((theta, tmp.unsqueeze(0)), 0)
         theta = theta[1:]
 
@@ -110,17 +118,40 @@ class ConvTTN3d(conv._ConvNd):
             grid = torch.cat((grid, tmp.unsqueeze(0)), 0)
 
         return grid
-    
-    def generate_srxy(self, resized_datapoint):
-        for i in range(self.out_channels):
-            _tmp = self.all_mlps[i](resized_datapoint)
-            # _tmp = self.mlp(resized_datapoint, self.first_weight[i, :, 0].unsqueeze(0))
 
-            for t in range(self.kernel_size[0]-1):
-                self.scale[t, i] = _tmp[0][t]
-                self.rotate[t, i] = _tmp[1][t]
-                self.translate_x[t, i] = _tmp[2][t]
-                self.translate_y[t, i] = _tmp[3][t]
+
+
+    def generate_srxy(self, datapoint, device): #resized_datapoint):
+        self.scale = self.scale.cuda(device)
+        self.rotate = self.rotate.cuda(device)
+        self.translate_x = self.translate_x.cuda(device)
+        self.translate_y = self.translate_y.cuda(device)
+        
+        for i in range(self.out_channels):
+
+            # self.scale[:, i],self.rotate[:, i],self.translate_x[:, i],self.translate_y[:, i] = self.all_mlps[i](datapoint)
+            
+            _tmp = self.all_mlps[i](datapoint)
+
+            # # _tmp = self.mlp(resized_datapoint, self.first_weight[i, :, 0].unsqueeze(0))
+            #
+            # for t in range(self.kernel_size[0]-1):
+            self.scale = torch.cat((_tmp[0].unsqueeze(1), self.scale), 1)
+            self.rotate = torch.cat((_tmp[1].unsqueeze(1), self.rotate), 1)
+            self.translate_x = torch.cat((_tmp[2].unsqueeze(1), self.translate_x), 1)
+            self.translate_y = torch.cat((_tmp[3].unsqueeze(1), self.translate_y), 1)
+                
+        self.scale = self.scale[:, 1:]
+        self.rotate = self.rotate[:, 1:]
+        self.translate_x = self.translate_x[:, 1:]
+        self.translate_y = self.translate_y[:, 1:]
+            
+                
+
+                # self.scale[t, i] = _tmp[0][t]
+                # self.rotate[t, i] = _tmp[1][t]
+                # self.translate_x[t, i] = _tmp[2][t]
+                # self.translate_y[t, i] = _tmp[3][t]
 
         # for i in range(self.out_channels):
         #     _tmp = self.mlp(resized_datapoint, self.first_weight[i, :, 0].unsqueeze(0))
@@ -132,13 +163,24 @@ class ConvTTN3d(conv._ConvNd):
         #         self.translate_y[t, i] = _tmp[3][t]
 
     
+    def reset_srxy(self):
+        self.scale = self.og_scale.clone()
+        self.rotate = self.og_rotate.clone()
+        self.translate_x = self.og_translate_x.clone()
+        self.translate_y = self.og_translate_y.clone()
+        
+    
     def forward(self, input_, device, resized_datapoint=None):
         
         if self.project_variable.nin:
-            if resized_datapoint is None:
-                self.generate_srxy(input_)
-            else:
-                self.generate_srxy(resized_datapoint)
+            # average in h, w dimensions
+            self.reset_srxy()
+            self.generate_srxy(input_, device)
+
+            # if resized_datapoint is None:
+            #     self.generate_srxy(input_)
+            # else:
+            #     self.generate_srxy(resized_datapoint)
             
         grid = torch.zeros((1, self.out_channels, self.kernel_size[1], self.kernel_size[2], 2))
 

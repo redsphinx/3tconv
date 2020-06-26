@@ -1,6 +1,6 @@
 import torch
 from torch.nn.functional import relu
-from torch.nn import BatchNorm2d, BatchNorm3d, Conv3d, Conv2d
+from torch.nn import BatchNorm2d, BatchNorm3d, Conv3d, Conv2d, AvgPool3d
 import torch.nn.functional as F
 
 class MLP_basic(torch.nn.Module):
@@ -50,16 +50,24 @@ class MLP_basic(torch.nn.Module):
 
 
 class MLP_per_channel(torch.nn.Module):
-    def __init__(self, in_channel, ksize, t_out, fc_in):
+    def __init__(self, in_channel, ksize, t_out, fc_in, hw):
         super(MLP_per_channel, self).__init__()
 
-        self.conv1 = Conv3d(in_channels=in_channel, out_channels=1, kernel_size=(1, ksize[0], ksize[1]),
-                            bias=False)
-        self.bn1 = BatchNorm3d(1)
+        # self.pool = AdaptiveAvgPool3d(output_size=(in_channel, temporal_dim, 1, 1))
+        self.pool = AvgPool3d(kernel_size=(1, hw[0], hw[1]))
 
-        # self.fc1 = torch.nn.Linear(in_features=31, out_features=10)
-        self.fc1 = torch.nn.Linear(in_features=fc_in, out_features=fc_in*2)
-        self.fc2 = torch.nn.Linear(in_features=fc_in*2, out_features=10)
+        # self.conv1 = Conv2d(in_channels=in_channel, out_channels=1, kernel_size=(ksize[0], ksize[1]),
+        #                     bias=False)
+        # self.bn1 = BatchNorm2d(1)
+
+        self.conv1 = Conv3d(in_channels=in_channel, out_channels=1, kernel_size=(ksize[1], 1, 1),
+                            bias=False)
+        # self.bn1 = BatchNorm3d(1)
+
+        self.fc1 = torch.nn.Linear(in_features=fc_in, out_features=10)
+
+        # self.fc1 = torch.nn.Linear(in_features=fc_in, out_features=fc_in*2)
+        # self.fc2 = torch.nn.Linear(in_features=fc_in*2, out_features=10)
 
         self.fc_s = torch.nn.Linear(in_features=10, out_features=t_out)
         self.fc_r = torch.nn.Linear(in_features=10, out_features=t_out)
@@ -70,7 +78,9 @@ class MLP_per_channel(torch.nn.Module):
         # reduced_input = F.interpolate(input_, (30, 7, 9))
         # reduced_input = F.interpolate(input_, (30, 7, 9), mode='trilinear', align_corners=True)
 
-        h = self.conv1(data)
+        h = self.pool(data)
+
+        h = self.conv1(h)
         # h = self.bn1(h)
 
         _shape = h.shape
@@ -78,8 +88,8 @@ class MLP_per_channel(torch.nn.Module):
 
         h = self.fc1(h)
         h = relu(h)
-        h = self.fc2(h)
-        h = relu(h)
+        # h = self.fc2(h)
+        # h = relu(h)
 
         s = self.fc_s(h)[0]
         r = self.fc_r(h)[0]

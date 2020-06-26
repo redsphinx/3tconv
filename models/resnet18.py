@@ -446,63 +446,80 @@ class ResNet18ExplicitNiN(torch.nn.Module):
     def __init__(self, pv):
         super(ResNet18ExplicitNiN, self).__init__()
         # self.conv1_relu = ConvolutionBlock(3, 64, pv)
-        self.conv1 = ConvTTN3d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3, project_variable=pv, bias=False, ksize=(7, 9), fc_in=30)
+        self.conv1 = ConvTTN3d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3, project_variable=pv,
+                               bias=False, ksize=(3, 30), fc_in=1, hw=(150, 224))
         self.bn1 = BatchNorm3d(64)
 
         self.maxpool = MaxPool3d(kernel_size=3, padding=1, stride=2, dilation=1)
 
         # self.res2a_relu = ResidualBlock(64, 64, pv)
-        self.conv2 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(38, 56), fc_in=8)
+        self.conv2 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv,
+                               bias=False, ksize=(64, 8), fc_in=1, hw=(38, 56))
         self.bn2 = BatchNorm3d(64)
-        self.conv3 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(38, 56), fc_in=8)
+        self.conv3 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv,
+                               bias=False, ksize=(64, 8), fc_in=1, hw=(38, 56))
         self.bn3 = BatchNorm3d(64)
 
         # self.res2b_relu = ResidualBlock(64, 64, pv)
-        self.conv4 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(38, 56), fc_in=8)
+        self.conv4 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv,
+                               bias=False, ksize=(64, 8), fc_in=1, hw=(38, 56))
         self.bn4 = BatchNorm3d(64)
-        self.conv5 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(38, 56), fc_in=8)
+        self.conv5 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv,
+                               bias=False, ksize=(64, 8), fc_in=1, hw=(38, 56))
         self.bn5 = BatchNorm3d(64)
 
         # self.res3a_relu = ResidualBlockB(64, 128, pv)
         self.conv6 = Conv3d(in_channels=64, out_channels=128, kernel_size=1, stride=2, bias=False)
         self.bn6 = BatchNorm3d(128)
-        self.conv7 = ConvTTN3d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False, ksize=(38, 56), fc_in=8)
+        self.conv7 = ConvTTN3d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1,
+                               project_variable=pv, bias=False, ksize=(64, 8), fc_in=1, hw=(38, 56))
         self.bn7 = BatchNorm3d(128)
-        self.conv8 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(19, 28), fc_in=4)
+        self.conv8 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv,
+                               bias=False, ksize=(128, 4), fc_in=1, hw=(19, 28))
         self.bn8 = BatchNorm3d(128)
 
         # self.res3b_relu = ResidualBlock(128, 128, pv)
-        self.conv9 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(19, 28), fc_in=4)
+        self.conv9 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv,
+                               bias=False, ksize=(128, 4), fc_in=1, hw=(19, 28))
         self.bn9 = BatchNorm3d(128)
-        self.conv10 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(19, 28), fc_in=4)
+        self.conv10 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv,
+                                bias=False, ksize=(128, 4), fc_in=1, hw=(19, 28))
         self.bn10 = BatchNorm3d(128)
 
         # self.res4a_relu = ResidualBlockB(128, 256, pv)
         self.conv11 = Conv3d(in_channels=128, out_channels=256, kernel_size=1, stride=2, bias=False)
         self.bn11 = BatchNorm3d(256)
-        self.conv12 = ConvTTN3d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False, ksize=(19, 28), fc_in=4)
+        self.conv12 = ConvTTN3d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1,
+                                project_variable=pv, bias=False, ksize=(128, 4), fc_in=1, hw=(19, 28))
         self.bn12 = BatchNorm3d(256)
-        self.conv13 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(10, 14), fc_in=2)
+        self.conv13 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv,
+                                bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
         self.bn13 = BatchNorm3d(256)
 
         # self.res4b_relu = ResidualBlock(256, 256, pv)
-        self.conv14 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(10, 14), fc_in=2)
+        self.conv14 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv,
+                                bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
         self.bn14 = BatchNorm3d(256)
-        self.conv15 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(10, 14), fc_in=2)
+        self.conv15 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv,
+                                bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
         self.bn15 = BatchNorm3d(256)
 
         # self.res5a_relu = ResidualBlockB(256, 512, pv)
         self.conv16 = Conv3d(in_channels=256, out_channels=512, kernel_size=1, stride=2, bias=False)
         self.bn16 = BatchNorm3d(512)
-        self.conv17 = ConvTTN3d(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False, ksize=(10, 14), fc_in=2)
+        self.conv17 = ConvTTN3d(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1,
+                                project_variable=pv, bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
         self.bn17 = BatchNorm3d(512)
-        self.conv18 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(5, 7), fc_in=1)
+        self.conv18 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv,
+                                bias=False, ksize=(512, 1), fc_in=1, hw=(5, 7))
         self.bn18 = BatchNorm3d(512)
 
         # self.res5b_relu = ResidualBlock(512, 512, pv)
-        self.conv19 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(5, 7), fc_in=1)
+        self.conv19 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv,
+                                bias=False, ksize=(512, 1), fc_in=1, hw=(5, 7))
         self.bn19 = BatchNorm3d(512)
-        self.conv20 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False, ksize=(5, 7), fc_in=1)
+        self.conv20 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv,
+                                bias=False, ksize=(512, 1), fc_in=1, hw=(5, 7))
         self.bn20 = BatchNorm3d(512)
 
         self.avgpool = AdaptiveAvgPool3d(output_size=1)

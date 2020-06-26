@@ -406,3 +406,5 @@ def opt_makedirs(the_path):
 def resize_data(data):  # torch.Size([1, 3, 30, 150, 224])
     reduced_input = F.interpolate(data, (30, 7, 9), mode='trilinear', align_corners=True)  # torch.Size([1, 3, 30, 7, 9])
     return reduced_input
+
+
