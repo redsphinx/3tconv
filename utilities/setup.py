@@ -298,12 +298,27 @@ def get_model(project_variable):
 
     elif project_variable.model_number == 50:
         model = ResNet18ExplicitNiN(project_variable)
-        if type(project_variable.load_model) != bool and not project_variable.load_model is None:
-            model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
-        elif project_variable.load_model:
-            # load resnet18 from pytorch
-            tmp_resnet18 = resnet18(pretrained=True)
-            # copy the weights
+
+        # is_none, is_bool, is_model_number
+        case = [0, 0, 0]
+
+        if project_variable.load_model is not None:
+            if type(project_variable.load_model) != bool:
+                if project_variable.load_model[1] == project_variable.model_number:
+                    case[2] = 1
+            else:
+                case[1] = 1
+        else:
+            case[0] = 1
+
+        if case in [[0, 1, 0], [0, 0, 0]]:
+            if case == [0, 0, 0]:
+                assert project_variable.load_model[1] == 20
+                tmp_resnet18 = ResNet18Explicit(project_variable)
+                tmp_resnet18.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+            elif case == [0, 1, 0]:
+                tmp_resnet18 = resnet18(pretrained=True)
+
             model.conv1.first_weight = torch.nn.Parameter(tmp_resnet18.conv1.weight.unsqueeze(2))
             model.conv2.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[0].conv1.weight.unsqueeze(2))
             model.conv3.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[0].conv2.weight.unsqueeze(2))
@@ -325,6 +340,45 @@ def get_model(project_variable):
             model.conv19.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[1].conv1.weight.unsqueeze(2))
             model.conv20.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[1].conv2.weight.unsqueeze(2))
 
+        elif case == [0, 0, 1]:
+            model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+
+        #
+        # if type(project_variable.load_model) != bool and not project_variable.load_model is None:
+        #
+        #     if project_variable.load_model[1] == project_variable.model_number:
+        #         model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+        #     elif project_variable.load_model[1] == 20:
+        #         tmp_resnet18 = ResNet18Explicit(project_variable)
+        #         tmp_resnet18.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+        #
+        #
+        # elif project_variable.load_model:
+        #     # load resnet18 from pytorch
+        #     tmp_resnet18 = resnet18(pretrained=True)
+        #
+        #     # copy the weights
+        #     model.conv1.first_weight = torch.nn.Parameter(tmp_resnet18.conv1.weight.unsqueeze(2))
+        #     model.conv2.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[0].conv1.weight.unsqueeze(2))
+        #     model.conv3.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[0].conv2.weight.unsqueeze(2))
+        #     model.conv4.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[1].conv1.weight.unsqueeze(2))
+        #     model.conv5.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[1].conv2.weight.unsqueeze(2))
+        #     model.conv6.weight = torch.nn.Parameter(tmp_resnet18.layer2[0].downsample[0].weight.unsqueeze(2))
+        #     model.conv7.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[0].conv1.weight.unsqueeze(2))
+        #     model.conv8.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[0].conv2.weight.unsqueeze(2))
+        #     model.conv9.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[1].conv1.weight.unsqueeze(2))
+        #     model.conv10.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[1].conv2.weight.unsqueeze(2))
+        #     model.conv11.weight = torch.nn.Parameter(tmp_resnet18.layer3[0].downsample[0].weight.unsqueeze(2))
+        #     model.conv12.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[0].conv1.weight.unsqueeze(2))
+        #     model.conv13.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[0].conv2.weight.unsqueeze(2))
+        #     model.conv14.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[1].conv1.weight.unsqueeze(2))
+        #     model.conv15.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[1].conv2.weight.unsqueeze(2))
+        #     model.conv16.weight = torch.nn.Parameter(tmp_resnet18.layer4[0].downsample[0].weight.unsqueeze(2))
+        #     model.conv17.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[0].conv1.weight.unsqueeze(2))
+        #     model.conv18.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[0].conv2.weight.unsqueeze(2))
+        #     model.conv19.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[1].conv1.weight.unsqueeze(2))
+        #     model.conv20.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[1].conv2.weight.unsqueeze(2))
+
         # set weights of 3D conv to not require grad
         model.conv1.weight.requires_grad = False
         model.conv2.weight.requires_grad = False
@@ -343,6 +397,34 @@ def get_model(project_variable):
         model.conv18.weight.requires_grad = False
         model.conv19.weight.requires_grad = False
         model.conv20.weight.requires_grad = False
+
+        # if nin_only then set the non-nin parameters grad to false
+        if project_variable.train_nin_mode == 'nin_only':
+            model.conv1.first_weight.requires_grad = False
+            model.conv2.first_weight.requires_grad = False
+            model.conv3.first_weight.requires_grad = False
+            model.conv4.first_weight.requires_grad = False
+            model.conv5.first_weight.requires_grad = False
+            model.conv6.weight.requires_grad = False
+            model.conv7.first_weight.requires_grad = False
+            model.conv8.first_weight.requires_grad = False
+            model.conv9.first_weight.requires_grad = False
+            model.conv10.first_weight.requires_grad = False
+            model.conv11.weight.requires_grad = False
+            model.conv12.first_weight.requires_grad = False
+            model.conv13.first_weight.requires_grad = False
+            model.conv14.first_weight.requires_grad = False
+            model.conv15.first_weight.requires_grad = False
+            model.conv16.weight.requires_grad = False
+            model.conv17.first_weight.requires_grad = False
+            model.conv18.first_weight.requires_grad = False
+            model.conv19.first_weight.requires_grad = False
+            model.conv20.first_weight.requires_grad = False
+            model.fc.weight.requires_grad = False
+            model.fc.bias.requires_grad = False
+
+        else:
+            print('ERROR: train_nin_mode %s invalid or not implemented' % str(project_variable.train_nin_mode))
     
     else:
         print('ERROR: model_number=%d not supported' % project_variable.model_number)

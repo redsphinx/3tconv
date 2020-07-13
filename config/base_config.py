@@ -241,6 +241,9 @@ class ProjectVariable(object):
         # NiN idea
         # ----------------------------------------------------------------------------------------------------------
         self._nin = False
+        # valid options: 'nin_only', 'alternating', False
+        # if False, nin does not get trained
+        self._train_nin_mode = 'nin_only'
 
 
     @property
@@ -959,3 +962,11 @@ class ProjectVariable(object):
     @nin.setter
     def nin(self, value):
         self._nin = value
+
+    @property
+    def train_nin_mode(self):
+        return self._train_nin_mode
+    
+    @train_nin_mode.setter
+    def train_nin_mode(self, value):
+        self._train_nin_mode = value

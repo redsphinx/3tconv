@@ -4,69 +4,70 @@ from torch.nn import MaxPool3d, AdaptiveAvgPool3d, Conv3d, BatchNorm3d
 
 
 from models.conv3t import ConvTTN3d
+from models.classic_conv3t import ConvTTN3d as classic_3TConv
 
 
 class ResNet18Explicit(torch.nn.Module):
     def __init__(self, pv):
         super(ResNet18Explicit, self).__init__()
         # self.conv1_relu = ConvolutionBlock(3, 64, pv)
-        self.conv1 = ConvTTN3d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3, project_variable=pv, bias=False)
+        self.conv1 = classic_3TConv(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3, project_variable=pv, bias=False)
         self.bn1 = BatchNorm3d(64)
 
         self.maxpool = MaxPool3d(kernel_size=3, padding=1, stride=2, dilation=1)
 
         # self.res2a_relu = ResidualBlock(64, 64, pv)
-        self.conv2 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv2 = classic_3TConv(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn2 = BatchNorm3d(64)
-        self.conv3 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv3 = classic_3TConv(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn3 = BatchNorm3d(64)
 
         # self.res2b_relu = ResidualBlock(64, 64, pv)
-        self.conv4 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv4 = classic_3TConv(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn4 = BatchNorm3d(64)
-        self.conv5 = ConvTTN3d(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv5 = classic_3TConv(in_channels=64, out_channels=64, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn5 = BatchNorm3d(64)
 
         # self.res3a_relu = ResidualBlockB(64, 128, pv)
         self.conv6 = Conv3d(in_channels=64, out_channels=128, kernel_size=1, stride=2, bias=False)
         self.bn6 = BatchNorm3d(128)
-        self.conv7 = ConvTTN3d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False)
+        self.conv7 = classic_3TConv(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False)
         self.bn7 = BatchNorm3d(128)
-        self.conv8 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv8 = classic_3TConv(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn8 = BatchNorm3d(128)
 
         # self.res3b_relu = ResidualBlock(128, 128, pv)
-        self.conv9 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv9 = classic_3TConv(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn9 = BatchNorm3d(128)
-        self.conv10 = ConvTTN3d(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv10 = classic_3TConv(in_channels=128, out_channels=128, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn10 = BatchNorm3d(128)
 
         # self.res4a_relu = ResidualBlockB(128, 256, pv)
         self.conv11 = Conv3d(in_channels=128, out_channels=256, kernel_size=1, stride=2, bias=False)
         self.bn11 = BatchNorm3d(256)
-        self.conv12 = ConvTTN3d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False)
+        self.conv12 = classic_3TConv(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False)
         self.bn12 = BatchNorm3d(256)
-        self.conv13 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv13 = classic_3TConv(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn13 = BatchNorm3d(256)
 
         # self.res4b_relu = ResidualBlock(256, 256, pv)
-        self.conv14 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv14 = classic_3TConv(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn14 = BatchNorm3d(256)
-        self.conv15 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv15 = classic_3TConv(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn15 = BatchNorm3d(256)
 
         # self.res5a_relu = ResidualBlockB(256, 512, pv)
         self.conv16 = Conv3d(in_channels=256, out_channels=512, kernel_size=1, stride=2, bias=False)
         self.bn16 = BatchNorm3d(512)
-        self.conv17 = ConvTTN3d(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False)
+        self.conv17 = classic_3TConv(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1, project_variable=pv, bias=False)
         self.bn17 = BatchNorm3d(512)
-        self.conv18 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv18 = classic_3TConv(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn18 = BatchNorm3d(512)
 
         # self.res5b_relu = ResidualBlock(512, 512, pv)
-        self.conv19 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv19 = classic_3TConv(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn19 = BatchNorm3d(512)
-        self.conv20 = ConvTTN3d(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False)
+        self.conv20 = classic_3TConv(in_channels=512, out_channels=512, kernel_size=3, padding=1, project_variable=pv, bias=False)
         self.bn20 = BatchNorm3d(512)
 
         self.avgpool = AdaptiveAvgPool3d(output_size=1)
