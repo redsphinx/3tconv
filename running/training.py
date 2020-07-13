@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 from tqdm import tqdm
+import cProfile, pstats
+from io import StringIO
 
 from utilities import utils as U
 from utilities import tensorboard as TM
@@ -22,6 +24,9 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
             the_iterator = None
 
         for i, data_and_labels in tqdm(enumerate(the_iterator)):
+            # here
+            pr = cProfile.Profile()
+            pr.enable()
 
             data = data_and_labels[0]['data']
             labels = data_and_labels[0]['labels']
@@ -87,6 +92,14 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
 
             loss_epoch.append(float(loss))
             accuracy_epoch.append(float(accuracy))
+
+            # here
+            pr.disable()
+            s = StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+            ps.print_stats()
+            print(s.getvalue())
 
 
     # save data

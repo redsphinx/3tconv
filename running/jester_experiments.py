@@ -391,8 +391,8 @@ def e37_conv3T_jester():
     project_variable.device = 2
     project_variable.end_epoch = 5
     project_variable.repeat_experiments = 1
-    project_variable.batch_size = 20
-    project_variable.batch_size_val_test = 20
+    project_variable.batch_size = 1
+    project_variable.batch_size_val_test = 1
 
     project_variable.load_model = True
     project_variable.load_from_fast = True

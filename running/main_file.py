@@ -6,12 +6,15 @@ from tensorboardX import SummaryWriter
 import shutil
 import math
 
+
 from running import training, validation, testing
 from utilities import setup
 from utilities import utils as U
 from utilities import sheets as S
 from data import data_loading as D
 from config import paths as PP
+
+
 
 
 def run(project_variable):
@@ -282,11 +285,14 @@ def run(project_variable):
                         data = data_train, labels_train
                         my_model.train()
 
+
                     if project_variable.nas or project_variable.stop_at_collapse:
                         train_accuracy, (has_collapsed, collapsed_matrix) = training.run(project_variable, data,
                                                                                          my_model, my_optimizer, device)
                     else:
                         train_accuracy = training.run(project_variable, data, my_model, my_optimizer, device)
+
+
                 # ------------------------------------------------------------------------------------------------
                 # ------------------------------------------------------------------------------------------------
                 # HERE: VALIDATION

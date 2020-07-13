@@ -2,6 +2,7 @@ import torch
 from torch.nn.functional import relu
 from torch.nn import MaxPool3d, AdaptiveAvgPool3d, Conv3d, BatchNorm3d
 
+
 from models.conv3t import ConvTTN3d
 
 
@@ -472,7 +473,7 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         self.bn5 = BatchNorm3d(64)
 
         # self.res3a_relu = ResidualBlockB(64, 128, pv)
-        self.conv6 = Conv3d(in_channels=64, out_channels=128, kernel_size=1, stride=2, bias=False)
+        self.conv6 = Conv3d(in_channels=64, out_channels=128, kernel_size=1, stride=(1, 2, 2), bias=False)
         self.bn6 = BatchNorm3d(128)
         self.conv7 = ConvTTN3d(in_channels=64, out_channels=128, kernel_size=3, stride=(1, 2, 2), padding=1,
                                project_variable=pv, bias=False, ksize=(64, 8), fc_in=1, hw=(38, 56))
@@ -490,13 +491,12 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         self.bn10 = BatchNorm3d(128)
 
         # self.res4a_relu = ResidualBlockB(128, 256, pv)
-        self.conv11 = Conv3d(in_channels=128, out_channels=256, kernel_size=1, stride=2, bias=False)
+        self.conv11 = Conv3d(in_channels=128, out_channels=256, kernel_size=1, stride=(1, 2, 2), bias=False)
         self.bn11 = BatchNorm3d(256)
         self.conv12 = ConvTTN3d(in_channels=128, out_channels=256, kernel_size=3, stride=(1, 2, 2), padding=1,
                                 project_variable=pv, bias=False, ksize=(128, 4), fc_in=1, hw=(19, 28))
         self.bn12 = BatchNorm3d(256)
 
-        # TODO: I think there's division by zero when you do average pooling over the time dimension after padding
         self.conv13 = ConvTTN3d(in_channels=256, out_channels=256, kernel_size=3, padding=1, project_variable=pv,
                                 bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
         self.bn13 = BatchNorm3d(256)
@@ -510,7 +510,7 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         self.bn15 = BatchNorm3d(256)
 
         # self.res5a_relu = ResidualBlockB(256, 512, pv)
-        self.conv16 = Conv3d(in_channels=256, out_channels=512, kernel_size=1, stride=2, bias=False)
+        self.conv16 = Conv3d(in_channels=256, out_channels=512, kernel_size=1, stride=(1, 2, 2), bias=False)
         self.bn16 = BatchNorm3d(512)
         self.conv17 = ConvTTN3d(in_channels=256, out_channels=512, kernel_size=3, stride=(1, 2, 2), padding=1,
                                 project_variable=pv, bias=False, ksize=(256, 2), fc_in=1, hw=(10, 14))
@@ -531,6 +531,8 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         self.fc = torch.nn.Linear(512, pv.label_size)
 
     def forward(self, x, device, stop_at=None, resized_datapoint=None):
+
+
         # h = self.conv1_relu(x, device)
         h = self.conv1(x, device, resized_datapoint)
         h = self.bn1(h)
@@ -563,6 +565,11 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         h1 = relu(h1)
         h1 = self.conv8(h1, device)  # , resized_datapoint)
         h1 = self.bn8(h1)
+        # temp.shape
+        # torch.Size([1, 128, 8, 19, 28])
+        # h1.shape
+        # torch.Size([1, 128, 15, 19, 28])
+
         h = temp + h1
         h = relu(h)
 
@@ -619,4 +626,7 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         _shape = h.shape
         h = h.view(-1, _shape[1] * _shape[2] * _shape[3] * _shape[4])
         y = self.fc(h)
+
+
+
         return y
