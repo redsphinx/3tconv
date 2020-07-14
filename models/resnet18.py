@@ -580,7 +580,6 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         h1 = self.bn10(h1)
         h = h1 + h
         h = relu(h)
-        # TODO: I think there's division by zero when you do average pooling over the time dimension after padding
         # h = self.res4a_relu(h, device)  # , resized_datapoint)
         temp = self.conv11(h)
         temp = self.bn11(temp)

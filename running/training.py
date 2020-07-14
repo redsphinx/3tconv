@@ -31,12 +31,12 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
             data = data_and_labels[0]['data']
             labels = data_and_labels[0]['labels']
 
-            if project_variable.model_number not in [51, 52]:
-                # transpose data
-                data = data.permute(0, 4, 1, 2, 3)
-                # convert to floattensor
-                data = data.type(torch.float32)  # torch.Size([1, 3, 30, 150, 224])
+            # transpose data
+            data = data.permute(0, 4, 1, 2, 3)
+            # convert to floattensor
+            data = data.type(torch.float32)  # torch.Size([1, 3, 30, 150, 224])
 
+            if project_variable.model_number not in [51, 52]:
                 # if project_variable.nin:
                 #     resized_data = U.resize_data(data.clone())
 

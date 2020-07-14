@@ -241,9 +241,9 @@ class ProjectVariable(object):
         # NiN idea
         # ----------------------------------------------------------------------------------------------------------
         self._nin = False
-        # valid options: 'nin_only', 'alternating', False, None
+        # valid options: 'joint', 'nin_only', 'alternating', False
         # if False, nin does not get trained
-        self._train_nin_mode = 'nin_only'
+        self._train_nin_mode = 'joint'
 
 
     @property

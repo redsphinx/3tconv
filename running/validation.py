@@ -26,11 +26,13 @@ def run(project_variable, all_data, my_model, device):
             data = data_and_labels[0]['data']
             labels = data_and_labels[0]['labels']
 
+            # transpose data
+            data = data.permute(0, 4, 1, 2, 3)
+            # convert to floattensor
+            data = data.type(torch.float32)
+
             if project_variable.model_number not in [51, 52]:
-                # transpose data
-                data = data.permute(0, 4, 1, 2, 3)
-                # convert to floattensor
-                data = data.type(torch.float32)
+
                 data = data / 255
                 data[:, 0, :, :, :] = (data[:, 0, :, :, :] - 0.485) / 0.229
                 data[:, 1, :, :, :] = (data[:, 1, :, :, :] - 0.456) / 0.224
