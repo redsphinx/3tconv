@@ -449,8 +449,6 @@ class ResNet18ExplicitNiN(torch.nn.Module):
         super(ResNet18ExplicitNiN, self).__init__()
         # self.conv1_relu = ConvolutionBlock(3, 64, pv)
 
-        # TODO: fix the dimensions such that everything lines up
-
         self.conv1 = ConvTTN3d(in_channels=3, out_channels=64, kernel_size=7, stride=(1, 2, 2), padding=3, project_variable=pv,
                                bias=False, ksize=(3, 30), fc_in=1, hw=(150, 224))
         self.bn1 = BatchNorm3d(64)

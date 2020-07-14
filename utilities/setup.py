@@ -311,13 +311,37 @@ def get_model(project_variable):
         else:
             case[0] = 1
 
-        if case in [[0, 1, 0], [0, 0, 0]]:
-            if case == [0, 0, 0]:
-                assert project_variable.load_model[1] == 20
-                tmp_resnet18 = ResNet18Explicit(project_variable)
-                tmp_resnet18.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
-            elif case == [0, 1, 0]:
-                tmp_resnet18 = resnet18(pretrained=True)
+        if case == [0, 0, 0]:
+            assert project_variable.load_model[1] == 20
+            tmp_resnet18 = ResNet18Explicit(project_variable)
+            tmp_resnet18.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+
+            model.conv1.first_weight = tmp_resnet18.conv1.first_weight
+            model.conv2.first_weight = tmp_resnet18.conv2.first_weight
+            model.conv3.first_weight = tmp_resnet18.conv3.first_weight
+            model.conv4.first_weight = tmp_resnet18.conv4.first_weight
+            model.conv5.first_weight = tmp_resnet18.conv5.first_weight
+            model.conv6.weight = tmp_resnet18.conv6.weight
+            model.conv7.first_weight = tmp_resnet18.conv7.first_weight
+            model.conv8.first_weight = tmp_resnet18.conv8.first_weight
+            model.conv9.first_weight = tmp_resnet18.conv9.first_weight
+            model.conv10.first_weight = tmp_resnet18.conv10.first_weight
+            model.conv11.weight = tmp_resnet18.conv11.weight
+            model.conv12.first_weight = tmp_resnet18.conv12.first_weight
+            model.conv13.first_weight = tmp_resnet18.conv13.first_weight
+            model.conv14.first_weight = tmp_resnet18.conv14.first_weight
+            model.conv15.first_weight = tmp_resnet18.conv15.first_weight
+            model.conv16.weight = tmp_resnet18.conv16.weight
+            model.conv17.first_weight = tmp_resnet18.conv17.first_weight
+            model.conv18.first_weight = tmp_resnet18.conv18.first_weight
+            model.conv19.first_weight = tmp_resnet18.conv19.first_weight
+            model.conv20.first_weight = tmp_resnet18.conv20.first_weight
+            model.fc.weight = tmp_resnet18.fc.weight
+            model.fc.bias = tmp_resnet18.fc.bias
+            
+
+        elif case == [0, 1, 0]:
+            tmp_resnet18 = resnet18(pretrained=True)
 
             model.conv1.first_weight = torch.nn.Parameter(tmp_resnet18.conv1.weight.unsqueeze(2))
             model.conv2.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[0].conv1.weight.unsqueeze(2))
@@ -342,42 +366,6 @@ def get_model(project_variable):
 
         elif case == [0, 0, 1]:
             model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
-
-        #
-        # if type(project_variable.load_model) != bool and not project_variable.load_model is None:
-        #
-        #     if project_variable.load_model[1] == project_variable.model_number:
-        #         model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
-        #     elif project_variable.load_model[1] == 20:
-        #         tmp_resnet18 = ResNet18Explicit(project_variable)
-        #         tmp_resnet18.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
-        #
-        #
-        # elif project_variable.load_model:
-        #     # load resnet18 from pytorch
-        #     tmp_resnet18 = resnet18(pretrained=True)
-        #
-        #     # copy the weights
-        #     model.conv1.first_weight = torch.nn.Parameter(tmp_resnet18.conv1.weight.unsqueeze(2))
-        #     model.conv2.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[0].conv1.weight.unsqueeze(2))
-        #     model.conv3.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[0].conv2.weight.unsqueeze(2))
-        #     model.conv4.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[1].conv1.weight.unsqueeze(2))
-        #     model.conv5.first_weight = torch.nn.Parameter(tmp_resnet18.layer1[1].conv2.weight.unsqueeze(2))
-        #     model.conv6.weight = torch.nn.Parameter(tmp_resnet18.layer2[0].downsample[0].weight.unsqueeze(2))
-        #     model.conv7.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[0].conv1.weight.unsqueeze(2))
-        #     model.conv8.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[0].conv2.weight.unsqueeze(2))
-        #     model.conv9.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[1].conv1.weight.unsqueeze(2))
-        #     model.conv10.first_weight = torch.nn.Parameter(tmp_resnet18.layer2[1].conv2.weight.unsqueeze(2))
-        #     model.conv11.weight = torch.nn.Parameter(tmp_resnet18.layer3[0].downsample[0].weight.unsqueeze(2))
-        #     model.conv12.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[0].conv1.weight.unsqueeze(2))
-        #     model.conv13.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[0].conv2.weight.unsqueeze(2))
-        #     model.conv14.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[1].conv1.weight.unsqueeze(2))
-        #     model.conv15.first_weight = torch.nn.Parameter(tmp_resnet18.layer3[1].conv2.weight.unsqueeze(2))
-        #     model.conv16.weight = torch.nn.Parameter(tmp_resnet18.layer4[0].downsample[0].weight.unsqueeze(2))
-        #     model.conv17.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[0].conv1.weight.unsqueeze(2))
-        #     model.conv18.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[0].conv2.weight.unsqueeze(2))
-        #     model.conv19.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[1].conv1.weight.unsqueeze(2))
-        #     model.conv20.first_weight = torch.nn.Parameter(tmp_resnet18.layer4[1].conv2.weight.unsqueeze(2))
 
         # set weights of 3D conv to not require grad
         model.conv1.weight.requires_grad = False
