@@ -26,14 +26,15 @@ def run(project_variable, all_data, my_model, device):
             data = data_and_labels[0]['data']
             labels = data_and_labels[0]['labels']
 
-            # transpose data
-            data = data.permute(0, 4, 1, 2, 3)
-            # convert to floattensor
-            data = data.type(torch.float32)
-            data = data / 255
-            data[:, 0, :, :, :] = (data[:, 0, :, :, :] - 0.485) / 0.229
-            data[:, 1, :, :, :] = (data[:, 1, :, :, :] - 0.456) / 0.224
-            data[:, 2, :, :, :] = (data[:, 2, :, :, :] - 0.406) / 0.225
+            if project_variable.model_number not in [51, 52]:
+                # transpose data
+                data = data.permute(0, 4, 1, 2, 3)
+                # convert to floattensor
+                data = data.type(torch.float32)
+                data = data / 255
+                data[:, 0, :, :, :] = (data[:, 0, :, :, :] - 0.485) / 0.229
+                data[:, 1, :, :, :] = (data[:, 1, :, :, :] - 0.456) / 0.224
+                data[:, 2, :, :, :] = (data[:, 2, :, :, :] - 0.406) / 0.225
 
             labels = labels.type(torch.long)
             labels = labels.flatten()
@@ -45,14 +46,16 @@ def run(project_variable, all_data, my_model, device):
                 if project_variable.model_number in [23]:
                     aux1, aux2, predictions = my_model(data, device, None, False)
                     assert aux1 is None and aux2 is None
-                elif project_variable.model_number in [20]:
+                elif project_variable.model_number in [20, 51]:
                     predictions = my_model(data, device)
 
                 elif project_variable.model_number in [25]:
                     aux1, aux2, predictions = my_model(data, None, False)
                     assert aux1 is None and aux2 is None
 
-                elif project_variable.model_number in [50]:
+                elif project_variable.model_number in [50, 52]:
+                    assert project_variable.nin
+                    # predictions = my_model(data, device, og_datapoint=data)
                     predictions = my_model(data, device, og_datapoint=data)
 
                 else:

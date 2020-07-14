@@ -231,12 +231,12 @@ def get_jester_iter(which, project_variable):
     elif project_variable.nas or project_variable.debug_mode:
         file_list = os.path.join(PP.jester_location, 'filelist_%s_150_224_fast.txt' % which)
     else:
-        if project_variable.model_number in [20, 21, 23, 25]:
-            print('fetching 150 224...')
-            # default is to load from fast
-            file_list = os.path.join(PP.jester_location, 'filelist_%s_150_224_fast.txt' % which)
-        else:
-            file_list = os.path.join(PP.jester_location, 'filelist_%s.txt' % which)
+        # if project_variable.model_number in [20, 21, 23, 25]:
+        print('fetching 150 224...')
+        # default is to load from fast
+        file_list = os.path.join(PP.jester_location, 'filelist_%s_150_224_fast.txt' % which)
+        # else:
+        #     file_list = os.path.join(PP.jester_location, 'filelist_%s.txt' % which)
 
     if which == 'val':
         print('Loading validation iterator...')

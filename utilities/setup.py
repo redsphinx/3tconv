@@ -7,6 +7,7 @@ import os
 from config import paths as PP
 from models.resnet18 import ResNet18Explicit, ResNet18Explicit3DConv, ResNet18ExplicitNiN
 from models.googlenet import Googlenet3TConv_explicit, Googlenet3DConv_explicit
+from models.small_convnet import TACoNet, ConvNet3T
 
 
 def get_model(project_variable):
@@ -387,7 +388,7 @@ def get_model(project_variable):
         model.conv20.weight.requires_grad = False
 
         # if nin_only then set the non-nin parameters grad to false
-        if project_variable.train_nin_mode == 'nin_only':
+        if project_variable.nin and project_variable.train_nin_mode == 'nin_only':
             model.conv1.first_weight.requires_grad = False
             model.conv2.first_weight.requires_grad = False
             model.conv3.first_weight.requires_grad = False
@@ -413,7 +414,30 @@ def get_model(project_variable):
 
         else:
             print('ERROR: train_nin_mode %s invalid or not implemented' % str(project_variable.train_nin_mode))
-    
+
+    elif project_variable.model_number in [51, 52]:
+        if project_variable.model_number == 51:
+            model = ConvNet3T(project_variable)
+        else:
+            model = TACoNet(project_variable)
+            if project_variable.nin and project_variable.train_nin_mode == 'nin_only':
+                model.conv1.first_weight.requires_grad = False
+                model.conv2.first_weight.requires_grad = False
+                model.conv3.first_weight.requires_grad = False
+                model.conv4.first_weight.requires_grad = False
+                model.fc1.weight.requires_grad = False
+                model.fc1.bias.requires_grad = False
+                model.fc2.weight.requires_grad = False
+                model.fc2.bias.requires_grad = False
+
+        if type(project_variable.load_model) != bool and project_variable.load_model is not None:
+            model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+
+        model.conv1.weight.requires_grad = False
+        model.conv2.weight.requires_grad = False
+        model.conv3.weight.requires_grad = False
+        model.conv4.weight.requires_grad = False
+
     else:
         print('ERROR: model_number=%d not supported' % project_variable.model_number)
         model = None

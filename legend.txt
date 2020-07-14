@@ -1,3 +1,20 @@
+---------------
+CURRENT PROJECT
+---------------
+
+50  resnet18, 3TConv, NiN = True
+51  small convnet with 3TConv layers
+52  small convnet with TACo layers (TACo == NiN=True)
+
+
+
+
+
+
+----------------------
+from previous project:
+----------------------
+
 20  resnet18 3TConv
 21  resnet18 3DConv
 23  googlenet 3TConv
@@ -22,5 +39,3 @@
 # +---------+------------+--------------+
 # | GN 3T   | 33, 23, 33 | 1005, 23, 28 |
 # +---------+------------+--------------+
-
-50  resnet18, 3TConv, NiN = True
