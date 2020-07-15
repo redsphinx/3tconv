@@ -21,6 +21,8 @@ def run(project_variable, all_data, my_model, device):
         else:
             the_iterator = None
 
+        steps = 0
+
         for i, data_and_labels in tqdm(enumerate(the_iterator)):
 
             data = data_and_labels[0]['data']
@@ -73,6 +75,8 @@ def run(project_variable, all_data, my_model, device):
 
             loss_epoch.append(float(loss))
             accuracy_epoch.append(float(accuracy))
+
+            steps = steps + 1
 
 
     # save data

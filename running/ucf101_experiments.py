@@ -249,8 +249,43 @@ def e1009_3T_ucf101():
     main_file.run(project_variable)
 
 
+def e1010_3T_ucf101():
+    set_init_1()
+    project_variable.nin = False
+
+    project_variable.model_number = 51 # convnet3T
+    project_variable.experiment_number = 38
+    project_variable.sheet_number = 23
+
+    project_variable.device = 1
+    project_variable.end_epoch = 1
+    project_variable.repeat_experiments = 1
+    project_variable.batch_size = 20
+    project_variable.batch_size_val_test = 20
+
+    project_variable.load_model = None
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.00005
+    project_variable.use_adaptive_lr = True
+    project_variable.num_out_channels = [0]
+
+    # wait_for_gpu(wait=True, device_num=project_variable.device)
+    main_file.run(project_variable)
+
+
 project_variable = ProjectVariable(debug_mode=True)
 
 
-e1009_3T_ucf101()
+e1010_3T_ucf101()
+# e1011_3T_ucf101()
 

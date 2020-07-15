@@ -23,6 +23,8 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
         else:
             the_iterator = None
 
+        steps = 0
+
         for i, data_and_labels in tqdm(enumerate(the_iterator)):
             # here
             # pr = cProfile.Profile()
@@ -94,6 +96,8 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
 
             loss_epoch.append(float(loss))
             accuracy_epoch.append(float(accuracy))
+
+            steps = steps + 1
 
             # here
             # pr.disable()

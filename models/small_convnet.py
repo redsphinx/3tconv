@@ -18,27 +18,35 @@ class ConvNet3T(torch.nn.Module):
         self.conv4 = classic_3tconv(in_channels=32, out_channels=32, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
         self.pool2 = AvgPool3d(kernel_size=2)
 
-        self.fc1 = Linear(48608, 1968)
+        if pv.dataset == 'jester':
+            features_in = 48608
+        elif pv.dataset == 'ucf101':
+            features_in = 54880
+        else:
+            print('ERROR: Dataset not valid, features_in cannot be set')
+            features_in = None
+
+        self.fc1 = Linear(features_in, 1968)
         self.fc2 = Linear(1968, pv.label_size)
 
 
     def forward(self, x, device, stop_at=None):
-        print('1. ', x.shape)
+        # print('1. ', x.shape)
         h = self.conv1(x, device)
         h = relu(h)
         h = self.pool1(h)
 
-        print('2. ', h.shape)
+        # print('2. ', h.shape)
         h = self.conv2(h, device)
 
         h = relu(h)
-        print('3. ', h.shape)
+        # print('3. ', h.shape)
         h = self.conv3(h, device)
         h = relu(h)
-        print('4. ', h.shape)
+        # print('4. ', h.shape)
         h = self.conv4(h, device)
         h = relu(h)
-        print('5. ', h.shape)
+        # print('5. ', h.shape)
         h = self.pool2(h)
 
         _shape = h.shape
@@ -72,7 +80,15 @@ class TACoNet(torch.nn.Module):
 
         self.pool2 = AvgPool3d(kernel_size=2)
 
-        self.fc1 = Linear(48608, 1968)
+        if pv.dataset == 'jester':
+            features_in = 48608
+        elif pv.dataset == 'ucf101':
+            features_in = 54880
+        else:
+            print('ERROR: Dataset not valid, features_in cannot be set')
+            features_in = None
+
+        self.fc1 = Linear(features_in, 1968)
         self.fc2 = Linear(1968, pv.label_size)
 
 

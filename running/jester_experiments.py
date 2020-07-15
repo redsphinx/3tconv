@@ -420,13 +420,13 @@ def e37_conv3T_jester():
 def e38_conv3T_jester():
     set_init_1()
     project_variable.nin = False
-    project_variable.train_nin_mode = 'nin_only'
+    # project_variable.train_nin_mode = 'nin_only'
 
     project_variable.model_number = 51 # convnet3T
     project_variable.experiment_number = 38
     project_variable.sheet_number = 22
 
-    project_variable.device = 1
+    project_variable.device = 0
     project_variable.end_epoch = 10
     project_variable.repeat_experiments = 1
     project_variable.batch_size = 20
@@ -461,7 +461,7 @@ def e39_conv3T_jester():
     project_variable.experiment_number = 39
     project_variable.sheet_number = 22
 
-    project_variable.device = 2
+    project_variable.device = 1
     project_variable.end_epoch = 10
     project_variable.repeat_experiments = 1
     project_variable.batch_size = 20
