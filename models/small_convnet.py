@@ -18,7 +18,7 @@ class ConvNet3T(torch.nn.Module):
         self.conv4 = classic_3tconv(in_channels=32, out_channels=32, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
         self.pool2 = AvgPool3d(kernel_size=2)
 
-        if pv.dataset == 'jester':
+        if 'jester' in pv.dataset:
             features_in = 48608
         elif pv.dataset == 'ucf101':
             features_in = 54880
@@ -80,7 +80,7 @@ class TACoNet(torch.nn.Module):
 
         self.pool2 = AvgPool3d(kernel_size=2)
 
-        if pv.dataset == 'jester':
+        if 'jester' in pv.dataset:
             features_in = 48608
         elif pv.dataset == 'ucf101':
             features_in = 54880
