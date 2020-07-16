@@ -486,8 +486,8 @@ def e39_conv3T_jester():
     # wait_for_gpu(wait=True, device_num=project_variable.device)
     main_file.run(project_variable)
 
-# project_variable = ProjectVariable(debug_mode=False)
-project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
+# project_variable = ProjectVariable(debug_mode=True)
 
 # e37_conv3T_jester()
 # e38_conv3T_jester()

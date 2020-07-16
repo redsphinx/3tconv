@@ -16,6 +16,8 @@ def run(project_variable, all_data, my_model, device):
     if project_variable.use_dali:
         if project_variable.dataset == 'jester':
             the_iterator = DL.get_jester_iter('val', project_variable)
+        elif project_variable.dataset == 'tiny_jester':
+            the_iterator = DL.get_tiny_jester_iter('val', project_variable)
         elif project_variable.dataset == 'ucf101':
             the_iterator = DL.get_ucf101_iter('val', project_variable)
         else:
@@ -42,7 +44,7 @@ def run(project_variable, all_data, my_model, device):
 
             labels = labels.type(torch.long)
             labels = labels.flatten()
-            if project_variable.dataset == 'jester':
+            if 'jester' in project_variable.dataset:
                 labels = labels - 1
 
             my_model.eval()
@@ -60,7 +62,7 @@ def run(project_variable, all_data, my_model, device):
                 elif project_variable.model_number in [50, 52]:
                     assert project_variable.nin
                     # predictions = my_model(data, device, og_datapoint=data)
-                    predictions = my_model(data, device, og_datapoint=data)
+                    predictions = my_model(data, device)
 
                 else:
                     predictions = my_model(data)

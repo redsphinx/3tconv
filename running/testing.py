@@ -16,6 +16,8 @@ def run(project_variable, all_data, my_model, device):
     if project_variable.use_dali:
         if project_variable.dataset == 'jester':
             the_iterator = DL.get_jester_iter('test', project_variable)
+        elif project_variable.dataset == 'tiny_jester':
+            the_iterator = DL.get_tiny_jester_iter('test', project_variable)
         elif project_variable.dataset == 'ucf101':
             the_iterator = DL.get_ucf101_iter('test', project_variable)
         else:
@@ -33,7 +35,7 @@ def run(project_variable, all_data, my_model, device):
             data = data.type(torch.float32)
             labels = labels.type(torch.long)
             labels = labels.flatten()
-            if project_variable.dataset == 'jester':
+            if 'jester' in project_variable.dataset:
                 labels = labels - 1
 
             my_model.eval()

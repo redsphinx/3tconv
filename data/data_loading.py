@@ -263,6 +263,98 @@ def get_jester_iter(which, project_variable):
     return the_iter
 
 
+# ---------------------
+# jester with only 500, 200 samples per class
+class TinyJesterPipe(Pipeline):
+    def __init__(self, batch_size,
+                 num_threads=6,
+                 device_id=0,
+                 file_list='',
+                 shuffle=False,
+                 sequence_length=30,
+                 step=-1,
+                 stride=1,
+                 initial_fill=1024,
+                 seed=0):
+
+        super(TinyJesterPipe, self).__init__(batch_size, num_threads, device_id, seed=seed)
+
+        self.input = ops.VideoReader(device='gpu',
+                                     file_list=file_list,
+                                     sequence_length=sequence_length,
+                                     step=step,
+                                     stride=stride,
+                                     shard_id=0,
+                                     num_shards=1,
+                                     random_shuffle=shuffle,
+                                     initial_fill=initial_fill)
+
+        self.normalize = ops.Normalize(device='gpu',
+                                       )
+
+    def define_graph(self):
+        output, labels = self.input(name="Reader")
+        return output, labels
+
+
+def tiny_jester_iterator(batch_size, file_list, num_workers, do_shuffle, the_seed, iterator_size, reset, device):
+
+    pipe = VideoPipe(batch_size=batch_size,
+                     file_list=file_list,
+                     shuffle=do_shuffle,
+                     initial_fill=batch_size,
+                     num_threads=num_workers,
+                     seed=the_seed,
+                     device_id=device
+                     )
+    pipe.build()
+
+    if iterator_size == 'all':
+        it_size = pipe.epoch_size("Reader")
+    else:
+        it_size = iterator_size
+
+    dali_iter = DALIGenericIterator([pipe], ['data', 'labels'], size=it_size, auto_reset=reset,
+                                    fill_last_batch=True, last_batch_padded=False)
+
+    return dali_iter
+
+
+def get_tiny_jester_iter(which, project_variable):
+    # % s/\/scratch\/users\/gabras\/jester\/data_50_75_avi/\/fast\/gabras\/jester\/data_150_224_avi/g
+    if not project_variable.xai_only_mode:
+        assert which in ['train', 'val', 'test']
+
+    if which in ['train', 'test']:
+        file_list = os.path.join(PP.jester_location, 'filelist_%s_500c_150_224.txt' % which)
+    else:
+        file_list = os.path.join(PP.jester_location, 'filelist_val_200c_150_224.txt')
+
+    the_iter = None
+
+    if which == 'val':
+        print('Loading validation iterator...')
+        the_iter = tiny_jester_iterator(project_variable.batch_size_val_test,
+                                        file_list, project_variable.dali_workers, False, 0,
+                                        project_variable.dali_iterator_size[1], True, project_variable.device)
+    elif which == 'test':
+        print('Loading test iterator...')
+        the_iter = tiny_jester_iterator(project_variable.batch_size_val_test,
+                                        file_list, project_variable.dali_workers, False, 0,
+                                        project_variable.dali_iterator_size[2], True, project_variable.device)
+    elif which == 'train':
+        print('Loading training iterator...')
+        the_iter = tiny_jester_iterator(project_variable.batch_size, file_list,
+                                        project_variable.dali_workers,
+                                        project_variable.randomize_training_data, 6,
+                                        project_variable.dali_iterator_size[0], True, project_variable.device)
+
+    return the_iter
+
+# ---------------------
+
+
+
 class UCF101VideoPipe(Pipeline):
     def __init__(self, batch_size,
                  num_threads=6,
