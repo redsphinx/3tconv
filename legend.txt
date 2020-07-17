@@ -5,8 +5,8 @@ CURRENT PROJECT
 50  resnet18, 3TConv, NiN = True
 51  small convnet with 3TConv layers
 52  small convnet with TACo layers (TACo == NiN=True)
-
-
+53  AlexNet-3Tconv
+54  AlexNet-Taco
 
 
 

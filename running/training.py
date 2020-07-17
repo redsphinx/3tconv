@@ -65,7 +65,7 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
 
             my_optimizer.zero_grad()
 
-            if project_variable.model_number in [20, 51]:
+            if project_variable.model_number in [20, 51, 53]:
                 predictions = my_model(data, device)
             elif project_variable.model_number in [23]:
                 aux1, aux2, predictions = my_model(data, device)
@@ -73,7 +73,7 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
             elif project_variable.model_number in [25]:
                 aux1, aux2, predictions = my_model(data)
                 assert aux1 is not None and aux2 is not None
-            elif project_variable.model_number in [50, 52]:
+            elif project_variable.model_number in [50, 52, 54]:
                 assert project_variable.nin
                 # predictions = my_model(data, device, resized_datapoint=resized_data)
                 predictions = my_model(data, device)

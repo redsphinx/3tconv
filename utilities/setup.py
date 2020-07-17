@@ -1,4 +1,4 @@
-from torchvision.models import resnet18, googlenet, vgg19_bn, vgg16_bn
+from torchvision.models import resnet18, googlenet, vgg19_bn, vgg16_bn, alexnet
 from torch.optim.adam import Adam
 from torch.optim.sgd import SGD
 import torch
@@ -8,6 +8,7 @@ from config import paths as PP
 from models.resnet18 import ResNet18Explicit, ResNet18Explicit3DConv, ResNet18ExplicitNiN
 from models.googlenet import Googlenet3TConv_explicit, Googlenet3DConv_explicit
 from models.small_convnet import TACoNet, ConvNet3T
+from models.alexnet import AlexNetExplicit3T, AlexNetExplicitTaco
 
 
 def get_model(project_variable):
@@ -437,6 +438,42 @@ def get_model(project_variable):
         model.conv2.weight.requires_grad = False
         model.conv3.weight.requires_grad = False
         model.conv4.weight.requires_grad = False
+
+    elif project_variable.model_number == 53:
+        model = AlexNetExplicit3T(project_variable)
+
+        # TODO: implement loading
+        if type(project_variable.load_model) != bool and not project_variable.load_model is None:
+            model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+        elif project_variable.load_model:
+            # load alexnet from pytorch
+            tmp_alexnet = alexnet(pretrained=True)
+            print('asdf')
+
+        model.conv1.weight.requires_grad = False
+        model.conv2.weight.requires_grad = False
+        model.conv3.weight.requires_grad = False
+        model.conv4.weight.requires_grad = False
+        model.conv5.weight.requires_grad = False
+
+    elif project_variable.model_number == 54:
+        model = AlexNetExplicitTaco(project_variable)
+
+        # TODO: implement loading
+        if type(project_variable.load_model) != bool and not project_variable.load_model is None:
+            model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+        elif project_variable.load_model:
+            # load alexnet from pytorch
+            tmp_alexnet = alexnet(pretrained=True)
+            print('asdf')
+
+        model.conv1.weight.requires_grad = False
+        model.conv2.weight.requires_grad = False
+        model.conv3.weight.requires_grad = False
+        model.conv4.weight.requires_grad = False
+        model.conv5.weight.requires_grad = False
+
+
 
     else:
         print('ERROR: model_number=%d not supported' % project_variable.model_number)

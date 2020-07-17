@@ -112,3 +112,4 @@ class TACoNet(torch.nn.Module):
         h = relu(h)
         y = self.fc2(h)
         return y
+
