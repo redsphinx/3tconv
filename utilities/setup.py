@@ -442,13 +442,27 @@ def get_model(project_variable):
     elif project_variable.model_number == 53:
         model = AlexNetExplicit3T(project_variable)
 
-        # TODO: implement loading
+        # TODO: implement loading pre-trained 3T
         if type(project_variable.load_model) != bool and not project_variable.load_model is None:
             model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
         elif project_variable.load_model:
             # load alexnet from pytorch
             tmp_alexnet = alexnet(pretrained=True)
-            print('asdf')
+
+            model.conv1.first_weight = torch.nn.Parameter(tmp_alexnet.features[0].weight.unsqueeze(2))
+            model.conv1.bias = tmp_alexnet.features[0].bias
+            model.conv2.first_weight = torch.nn.Parameter(tmp_alexnet.features[3].weight.unsqueeze(2))
+            model.conv2.bias = tmp_alexnet.features[3].bias
+            model.conv3.first_weight = torch.nn.Parameter(tmp_alexnet.features[6].weight.unsqueeze(2))
+            model.conv3.bias = tmp_alexnet.features[6].bias
+            model.conv4.first_weight = torch.nn.Parameter(tmp_alexnet.features[8].weight.unsqueeze(2))
+            model.conv4.bias = tmp_alexnet.features[8].bias
+            model.conv5.first_weight = torch.nn.Parameter(tmp_alexnet.features[10].weight.unsqueeze(2))
+            model.conv5.bias = tmp_alexnet.features[10].bias
+            model.fc1.weight = tmp_alexnet.classifier[1].weight
+            model.fc1.bias = tmp_alexnet.classifier[1].bias
+            model.fc2.weight = tmp_alexnet.classifier[4].weight
+            model.fc2.bias = tmp_alexnet.classifier[4].bias
 
         model.conv1.weight.requires_grad = False
         model.conv2.weight.requires_grad = False
@@ -459,13 +473,27 @@ def get_model(project_variable):
     elif project_variable.model_number == 54:
         model = AlexNetExplicitTaco(project_variable)
 
-        # TODO: implement loading
+        # TODO: implement loading pre-trained 3T
         if type(project_variable.load_model) != bool and not project_variable.load_model is None:
             model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
         elif project_variable.load_model:
             # load alexnet from pytorch
             tmp_alexnet = alexnet(pretrained=True)
-            print('asdf')
+
+            model.conv1.first_weight = torch.nn.Parameter(tmp_alexnet.features[0].weight.unsqueeze(2))
+            model.conv1.bias = tmp_alexnet.features[0].bias
+            model.conv2.first_weight = torch.nn.Parameter(tmp_alexnet.features[3].weight.unsqueeze(2))
+            model.conv2.bias = tmp_alexnet.features[3].bias
+            model.conv3.first_weight = torch.nn.Parameter(tmp_alexnet.features[6].weight.unsqueeze(2))
+            model.conv3.bias = tmp_alexnet.features[6].bias
+            model.conv4.first_weight = torch.nn.Parameter(tmp_alexnet.features[8].weight.unsqueeze(2))
+            model.conv4.bias = tmp_alexnet.features[8].bias
+            model.conv5.first_weight = torch.nn.Parameter(tmp_alexnet.features[10].weight.unsqueeze(2))
+            model.conv5.bias = tmp_alexnet.features[10].bias
+            model.fc1.weight = tmp_alexnet.classifier[1].weight
+            model.fc1.bias = tmp_alexnet.classifier[1].bias
+            model.fc2.weight = tmp_alexnet.classifier[4].weight
+            model.fc2.bias = tmp_alexnet.classifier[4].bias
 
         model.conv1.weight.requires_grad = False
         model.conv2.weight.requires_grad = False
