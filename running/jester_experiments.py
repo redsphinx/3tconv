@@ -569,9 +569,9 @@ def e42_conv3T_jester():
     project_variable.experiment_number = 42
     project_variable.sheet_number = 22
 
-    project_variable.device = 0
-    project_variable.end_epoch = 1
-    project_variable.repeat_experiments = 1
+    project_variable.device = 1
+    project_variable.end_epoch = 100
+    project_variable.repeat_experiments = 10
     project_variable.batch_size = 20
     project_variable.batch_size_val_test = 20
 
@@ -605,9 +605,9 @@ def e43_conv3T_jester():
     project_variable.experiment_number = 43
     project_variable.sheet_number = 22
 
-    project_variable.device = 1
-    project_variable.end_epoch = 1
-    project_variable.repeat_experiments = 1
+    project_variable.device = 0
+    project_variable.end_epoch = 100
+    project_variable.repeat_experiments = 3
     project_variable.batch_size = 20
     project_variable.batch_size_val_test = 20
 
@@ -631,8 +631,8 @@ def e43_conv3T_jester():
     main_file.run(project_variable)
 
 
-# project_variable = ProjectVariable(debug_mode=False)
-project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
+# project_variable = ProjectVariable(debug_mode=True)
 
 # e38_conv3T_jester()
 # e39_conv3T_jester()
