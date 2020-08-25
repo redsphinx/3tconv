@@ -54,7 +54,7 @@ def get_downloaded(which):
 
 # get_downloaded('train')
 # get_downloaded('valid')
-# get_downloaded('test')
+get_downloaded('test')
 
 # total train videos: 246534
 # successfully downloaded: 59006
