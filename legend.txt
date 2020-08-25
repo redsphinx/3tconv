@@ -8,7 +8,7 @@ CURRENT PROJECT
 53  AlexNet-3Tconv
 54  AlexNet-Taco
 
-
+Note: model 60 reserved already in previous project
 
 
 ----------------------
