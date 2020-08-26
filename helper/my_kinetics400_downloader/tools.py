@@ -17,9 +17,9 @@ og_failed_path = '/fast/gabras/kinetics400_downloader/dataset/failed.txt'
 # tmp_success_path = '/fast/gabras/kinetics400_downloader/dataset/tmp_success.txt'
 
 # opt_mkdir(stats_path)
-opt_mkdir(fails)
-opt_mkdir(successes)
-opt_mkdir(failed_reasons)
+# opt_mkdir(fails)
+# opt_mkdir(successes)
+# opt_mkdir(failed_reasons)
 
 
 def get_all_video_ids(which):
@@ -123,6 +123,26 @@ def replace(p1, p2):
     # os.remove(tmp_failed_path)
 
 
+def append_to_file(file_path, line):
+    try:
+        with open(file_path, 'a') as my_file:
+            my_file.write(line)
+            retry = False
+    except IOError:
+        retry = True
+
+    return retry
+
+
+def get_to_be_removed_from_fail_list(which):
+    tbr_fail_path = os.path.join(fails, 'tbr_%s.txt' % which)
+    if os.path.exists(tbr_fail_path):
+        return list(np.genfromtxt(tbr_fail_path, str))
+    else:
+        with open(tbr_fail_path, 'w') as my_file:
+            print('created file: %s' % tbr_fail_path)
+        return []
+    
 
 
 # get_downloaded('train')
