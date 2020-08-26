@@ -6,13 +6,23 @@ import json
 
 main_path = '/fast/gabras/kinetics400_downloader/dataset'
 jsons = '/fast/gabras/kinetics400_downloader/resources'
-stats_path = '/fast/gabras/kinetics400_downloader/download_stats'
-failed_path = '/fast/gabras/kinetics400_downloader/dataset/failed.txt'
+# stats_path = '/fast/gabras/kinetics400_downloader/download_stats'
+fails = '/fast/gabras/kinetics400_downloader/fails'
+successes = '/fast/gabras/kinetics400_downloader/successes'
+failed_reasons = '/fast/gabras/kinetics400_downloader/failed_reasons'
 
-opt_mkdir(stats_path)
+og_failed_path = '/fast/gabras/kinetics400_downloader/dataset/failed.txt'
+# tmp_failed_path = '/fast/gabras/kinetics400_downloader/dataset/tmp_failed.txt'
+# success_path = '/fast/gabras/kinetics400_downloader/dataset/success.txt'
+# tmp_success_path = '/fast/gabras/kinetics400_downloader/dataset/tmp_success.txt'
+
+# opt_mkdir(stats_path)
+opt_mkdir(fails)
+opt_mkdir(successes)
+opt_mkdir(failed_reasons)
 
 
-def get_video_ids(which):
+def get_all_video_ids(which):
     assert which in ['test', 'train', 'valid']
     if which == 'valid':
         which = 'val'
@@ -24,37 +34,100 @@ def get_video_ids(which):
     return keys_list
 
 
-def get_downloaded(which):
-    assert which in ['test', 'train', 'valid']
-
+def get_downloaded_list(which, full_path=False):
     which_path = os.path.join(main_path, which)
-
-    # make lists json videos
-    all_video_ids = get_video_ids(which)
-
-    # make lists which videos have downloaded
-    downloaded_videos = []
     folders = os.listdir(which_path)
+    download_list = []
 
-    for _f in folders:
-        _f_path = os.path.join(which_path, _f)
-        vids = os.listdir(_f_path)
-        for _v in vids:
-            last = _v.split('.')[-1]
-            if last == 'mp4':
-                downloaded_videos.append(_v.split('.')[0])
+    if full_path:
+        for _f in folders:
+            _f_path = os.path.join(which_path, _f)
+            vids = os.listdir(_f_path)
+            for _v in vids:
+                full_vid_path = os.path.join(_f_path, _v)
+                download_list.append(full_vid_path)
+    else: # only ids
+        for _f in folders:
+            _f_path = os.path.join(which_path, _f)
+            vids = os.listdir(_f_path)
+            for _v in vids:
+                _v = _v.split('.')[0]
+                download_list.append(_v)
 
-    # make lists which videos on failed list
-    failed = np.genfromtxt(failed_path, str)
+    return download_list
 
-    print('total %s videos: %d\n'
-          'successfully downloaded: %d \n'
-          'listed as failed: %d' % (which, len(all_video_ids), len(downloaded_videos), len(failed)))
+
+def fix_failed_list():
+    og_failed = set(np.genfromtxt(og_failed_path, str))
+
+    for which in ['test', 'train', 'valid']:
+        which_failed_path = os.path.join(fails, '%s.txt' % which)
+        which_ids = set(get_all_video_ids(which))
+
+        overlap = list(og_failed.intersection(which_ids))
+        with open(which_failed_path, 'a') as my_file:
+            for id in overlap:
+                line = '%s\n' % id
+                my_file.write(line)
+
+
+# fix_failed_list()
+
+
+def get_failed_list(which):
+    
+    failed_path = os.path.join(fails, '%s.txt' % which)
+    if os.path.exists(failed_path):
+        return list(np.genfromtxt(failed_path, str))
+    else:
+        with open(failed_path, 'w') as my_file:
+            print('created file: %s' % failed_path)
+        return []
+
+
+def get_failed_reasons_list(which):
+    failed_reasons_path = os.path.join(failed_reasons, '%s.txt' % which)
+    if os.path.exists(failed_reasons_path):
+        return list(np.genfromtxt(failed_reasons_path, str, delimiter=',', skip_header=True))
+    else:
+        with open(failed_reasons_path, 'w') as my_file:
+            line = 'id,reason\n'
+            my_file.write(line)
+            print('created file: %s' % failed_reasons_path)
+        return []
+
+    
+def get_success_list(which):
+    success_path = os.path.join(fails, '%s.txt' % which)
+    if os.path.exists(success_path):
+        return list(np.genfromtxt(success_path, str))
+    else:
+        with open(success_path, 'w') as my_file:
+            print('created file: %s' % success_path)
+        return []
+
+
+def replace(p1, p2):
+    # replaces p2 with p1
+    assert os.path.exists(p1)
+    # assert os.path.exists(p2)
+    if os.path.exists(p2):
+        os.remove(p2)
+    os.rename(p1, p2)
+    # os.remove(p1)
+
+    # example:
+    # replace(tmp_failed_path, failed_path)
+    # os.remove(failed_path)
+    # os.rename(tmp_failed_path, failed_path)
+    # os.remove(tmp_failed_path)
+
+
 
 
 # get_downloaded('train')
 # get_downloaded('valid')
-get_downloaded('test')
+# get_downloaded('test')
 
 # total train videos: 246534
 # successfully downloaded: 59006
