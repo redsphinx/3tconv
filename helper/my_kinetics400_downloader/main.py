@@ -222,9 +222,12 @@ def make_download_list(mode, which):
     return download_list
 
 
-def download_videos(vid_id, which, category):
+def download_videos(vid_id, which):
     video_format = 'mp4'
+    category = tools.get_category(which, vid_id)
+
     download_path = os.path.join(tools.main_path, which, category)
+    opt_makedirs(download_path)
 
     return_code = subprocess.call(
         ["youtube-dl", "https://youtube.com/watch?v={}".format(vid_id), "--quiet", "-f",

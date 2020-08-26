@@ -142,7 +142,22 @@ def get_to_be_removed_from_fail_list(which):
         with open(tbr_fail_path, 'w') as my_file:
             print('created file: %s' % tbr_fail_path)
         return []
-    
+
+
+def fix_category_text(name):
+    name = name.replace(' ', '_')
+    return name
+
+
+def get_category(which, vid_id):
+    src_path = os.path.join(jsons, 'kinetics_%s.json' % which)
+    with open(src_path) as json_file:
+        data = json.load(json_file)
+    category = data[vid_id]['annotations']['label']
+    category = fix_category_text(category)
+    return category
+
+
 
 
 # get_downloaded('train')
