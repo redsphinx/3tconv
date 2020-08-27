@@ -24,7 +24,7 @@ MODES
 
 
 WHICH
-'test', 'train', 'valid'
+'train', 'valid'
 
 
 ONLY_FAILED
@@ -73,7 +73,7 @@ def clean_up_partials():
 
     print('Removing partial files...')
     cnt = 0
-    for which in ['test', 'train', 'valid']:
+    for which in ['train', 'valid']:
         download_list = tools.get_downloaded_list(which, full_path=True) # list of strings
 
         for word in ['part', 'ytdl', '_raw']:
@@ -96,7 +96,7 @@ def crosscheck_lists():
 
     # check failed and tbr_failed: if on both, remove from failed
     print('..checking failed and tbr_failed..')
-    for which in ['test', 'train', 'valid']:
+    for which in ['train', 'valid']:
         tbr_failed_list = set(tools.get_to_be_removed_from_fail_list(which)) # list of ids
         failed_list = set(tools.get_failed_list(which)) # list of ids
         overlap = tbr_failed_list.intersection(failed_list)
@@ -121,7 +121,7 @@ def crosscheck_lists():
 
     # check failed and downloads: if on downloads+failed, remove from failed
     print('..checking downloads and failed..')
-    for which in ['test', 'train', 'valid']:
+    for which in ['train', 'valid']:
         download_list = set(tools.get_downloaded_list(which, full_path=False)) # list of ids
         failed_list = set(tools.get_failed_list(which)) # list of ids
         overlap = download_list.intersection(failed_list)
@@ -146,7 +146,7 @@ def crosscheck_lists():
 
     # check downloads and success:
     print('..checking downloads and success..')
-    for which in ['test', 'train', 'valid']:
+    for which in ['train', 'valid']:
         download_list = set(tools.get_downloaded_list(which, full_path=False)) # list of ids
         success_list = set(tools.get_success_list(which)) # list of ids
 
@@ -179,7 +179,7 @@ def crosscheck_lists():
 
     # check failed and failed_reasons: if on both, remove from failed
     print('..checking failed and failed_reasons..')
-    for which in ['test', 'train', 'valid']:
+    for which in ['train', 'valid']:
         failed_list = set(tools.get_failed_list(which)) # list of ids
         failed_reasons_list = set(tools.get_failed_reasons_list(which)) # list of ids
 
@@ -226,19 +226,49 @@ def download_videos(vid_id, which):
     video_format = 'mp4'
     category = tools.get_category(which, vid_id)
 
-    download_path = os.path.join(tools.main_path, which, category)
-    opt_makedirs(download_path)
+    save_folder_path = os.path.join(tools.main_path, which, category)
+    opt_makedirs(save_folder_path)
+    raw_video_path = os.path.join(save_folder_path, '%s_raw.mp4' % vid_id)
+    slice_path = os.path.join(save_folder_path, '%s.mp4' % vid_id)
+
+    # check if another process is already downloading it or if it has already been downloaded
+    if os.path.exists(raw_video_path):
+        is_success = False
+        opt_reason = 'raw_exists'
+        return is_success, opt_reason
+    elif os.path.exists(slice_path):
+        is_success = False
+        opt_reason = 'download_complete'
+        return is_success, opt_reason
 
     return_code = subprocess.call(
         ["youtube-dl", "https://youtube.com/watch?v={}".format(vid_id), "--quiet", "-f",
-         "bestvideo[ext={}]+bestaudio/best".format(video_format), "--output", download_path, "--no-continue"],
+         "bestvideo[ext={}]+bestaudio/best".format(video_format), "--output", raw_video_path, "--no-continue"],
         stderr=subprocess.DEVNULL)
 
-    is_success = return_code == 0
-    if not is_success:
+    download_success = return_code == 0
+    if not download_success:
         opt_reason = str(return_code)
     else:
         opt_reason = None
+
+    if download_success:
+        # cut at indicated times
+        clip_start, clip_end = tools.get_clip_times(which, vid_id)
+        return_code = subprocess.call(["ffmpeg", "-loglevel", "quiet", "-i", raw_video_path, "-strict", "-2",
+                                       "-ss", str(clip_start), "-to", str(clip_end), slice_path])
+        cut_success = return_code == 0
+
+        if cut_success:
+            assert os.path.exists(raw_video_path) and os.path.exists(slice_path)
+            os.remove(raw_video_path)
+    else:
+        cut_success = False
+
+    if download_success and cut_success:
+        is_success = True
+    else:
+        is_success = False
 
     return is_success, opt_reason
 
@@ -286,7 +316,7 @@ def add_to_be_removed_from_failed(which, vid_id):
 
 def run(mode, which, start, end):
     assert mode in ['only_failed', 'og_list']
-    assert which in ['test', 'train', 'valid']
+    assert which in ['train', 'valid']
 
     download_list = make_download_list(mode, which)
     download_list.sort()

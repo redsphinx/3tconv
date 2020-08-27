@@ -158,6 +158,15 @@ def get_category(which, vid_id):
     return category
 
 
+def get_clip_times(which, vid_id):
+    src_path = os.path.join(jsons, 'kinetics_%s.json' % which)
+    with open(src_path) as json_file:
+        data = json.load(json_file)
+    times = data[vid_id]['annotations']['segment']
+    start = times[0]
+    end = times[1]
+    return start, end
+
 
 
 # get_downloaded('train')
