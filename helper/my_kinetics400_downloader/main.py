@@ -241,27 +241,45 @@ def download_videos(vid_id, which):
         opt_reason = 'download_complete'
         return is_success, opt_reason
 
-    return_code = subprocess.call(
-        ["youtube-dl", "https://youtube.com/watch?v={}".format(vid_id), "--quiet", "-f",
-         "bestvideo[ext={}]+bestaudio/best".format(video_format), "--output", raw_video_path, "--no-continue"],
-        stderr=subprocess.DEVNULL)
+    download_command = "youtube-dl https://youtube.com/watch?v=%s --quiet -f bestvideo[ext=%s]+bestaudio/best --output %s --no-continue" \
+                       % (vid_id, video_format, raw_video_path)
+    download_proc = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
-    download_success = return_code == 0
-    if not download_success:
-        opt_reason = str(return_code)
-    else:
+    stdout, stderr = download_proc.communicate()
+    if download_proc.returncode == 0:
+        download_success = True
         opt_reason = None
+    else:
+        download_success = False
+        opt_reason = stderr.decode('utf-8')
 
     if download_success:
         # cut at indicated times
         clip_start, clip_end = tools.get_clip_times(which, vid_id)
-        return_code = subprocess.call(["ffmpeg", "-loglevel", "quiet", "-i", raw_video_path, "-strict", "-2",
-                                       "-ss", str(clip_start), "-to", str(clip_end), slice_path])
-        cut_success = return_code == 0
+        # return_code = subprocess.call(["ffmpeg", "-loglevel", "quiet", "-i", raw_video_path, "-strict", "-2",
+        #                                "-ss", str(clip_start), "-to", str(clip_end), slice_path])
+        # cut_success = return_code == 0
+
+        cut_command = "ffmpeg -loglevel quiet -i %s -strict -2 -ss %f -to %f %s" \
+                           % (raw_video_path, clip_start, clip_end, slice_path)
+        
+        cut_proc = subprocess.Popen(cut_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    
+        stdout, stderr = cut_proc.communicate()
+        if cut_proc.returncode == 0:
+            cut_success = True
+            opt_reason = None
+        else:
+            cut_success = False
+            opt_reason = stderr.decode('utf-8')
 
         if cut_success:
             assert os.path.exists(raw_video_path) and os.path.exists(slice_path)
+
+            # =========================
             os.remove(raw_video_path)
+            # =========================
+            
     else:
         cut_success = False
 
@@ -290,7 +308,8 @@ def add_success(which, vid_id):
 def add_failed_reason(which, vid_id, opt_reason):
     failed_reason_list = tools.get_failed_reasons_list(which)
     failed_reason_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
-    if vid_id not in failed_reason_list:
+    # TODO: crashes here
+    if not vid_id in failed_reason_list:
 
         line = '%s,%s\n' % (vid_id, str(opt_reason))
         retry = tools.append_to_file(failed_reason_path, line)
@@ -320,6 +339,7 @@ def run(mode, which, start, end):
 
     download_list = make_download_list(mode, which)
     download_list.sort()
+    print(download_list)
 
     print('=====================================================\n'
           'Downloading mode=%s, which=%s, b=%d, e=%d\n'
@@ -350,4 +370,4 @@ def run(mode, which, start, end):
 
 # clean_up_partials()
 # crosscheck_lists()
-run(mode='only_failed', which='valid', start=0, end=3)
+run(mode='only_failed', which='valid', start=0, end=1000)

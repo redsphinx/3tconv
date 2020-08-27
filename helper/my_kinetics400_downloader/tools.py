@@ -98,7 +98,7 @@ def get_failed_reasons_list(which):
 
     
 def get_success_list(which):
-    success_path = os.path.join(fails, '%s.txt' % which)
+    success_path = os.path.join(successes, '%s.txt' % which)
     if os.path.exists(success_path):
         return list(np.genfromtxt(success_path, str))
     else:
@@ -137,7 +137,11 @@ def append_to_file(file_path, line):
 def get_to_be_removed_from_fail_list(which):
     tbr_fail_path = os.path.join(fails, 'tbr_%s.txt' % which)
     if os.path.exists(tbr_fail_path):
-        return list(np.genfromtxt(tbr_fail_path, str))
+        tmp = np.genfromtxt(tbr_fail_path, str)
+        if tmp.shape == ():
+            return [str(tmp)]
+        else:
+            return list(tmp)
     else:
         with open(tbr_fail_path, 'w') as my_file:
             print('created file: %s' % tbr_fail_path)
@@ -150,6 +154,8 @@ def fix_category_text(name):
 
 
 def get_category(which, vid_id):
+    if which == 'valid':
+        which = 'val'
     src_path = os.path.join(jsons, 'kinetics_%s.json' % which)
     with open(src_path) as json_file:
         data = json.load(json_file)
@@ -159,6 +165,8 @@ def get_category(which, vid_id):
 
 
 def get_clip_times(which, vid_id):
+    if which == 'valid':
+        which = 'val'
     src_path = os.path.join(jsons, 'kinetics_%s.json' % which)
     with open(src_path) as json_file:
         data = json.load(json_file)
