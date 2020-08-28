@@ -7,62 +7,6 @@ import helper.my_kinetics400_downloader.tools as tools
 from tqdm import tqdm
 import subprocess
 
-'''
-
-TODO
-make a list of succeeded downloads
-
-AT INIT
-(in case the script abruptly ends we can continue without issues)
-make list of downloadeds
-remove anything that isn't complete
-
-
-MODES 
-'only_failed': download videos on failed list
-'og_list': download things that haven't downloaded yet and that aren't on failed
-
-
-WHICH
-'train', 'valid'
-
-
-ONLY_FAILED
-create failed_reason file
-
-read failed list
-read downloaded list (success)
-
-remove ids that intersect
-
-for the indicated amount of videos:
-    download the video
-    if success:
-        add successful ids on succeeded list
-        remove ids from failed
-    else:
-        get reason of failure
-        remove from failed (so that it doesn't try it twice)
-        add to failed_reason file
-
-
-OG_LIST
-read og list
-read success list
-read failed list
-
-make list that removes intersections
-
-for the indicated amount of videos:
-    download the video
-    if success:
-        add successful ids on succeeded list
-    else:
-        get reason of failure
-        add to failed_reason file
-    
-
-'''
 
 main_path = tools.main_path
 jsons = tools.jsons
@@ -324,10 +268,11 @@ def add_failed_reason(which, vid_id, opt_reason):
     # if not vid_id in failed_reason_list:
 
         line = '%s,%s\n' % (vid_id, str(opt_reason))
+        assert ',' in line
         retry = tools.append_to_file(failed_reason_path, line)
 
         while retry:
-            time.sleep(0.5)
+            time.sleep(1)
             retry = tools.append_to_file(failed_reason_path, line)
 
 
@@ -435,8 +380,8 @@ def run_parallel(mode, which, start, end, num_processes=10):
 # clean_up_partials()
 # crosscheck_lists()
 
-# total: 187475
+# total: 186202
 # run(mode='only_failed', which='train', start=0, end=10)
 
-run_parallel(mode='only_failed', which='train', start=0, end=187475, num_processes=20)
+run_parallel(mode='only_failed', which='train', start=0, end=186202, num_processes=20)
 # run(mode='only_failed', which='train', start=0, end=5)
