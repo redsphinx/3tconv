@@ -1,7 +1,7 @@
+from itertools import repeat
 import time
-import numpy as np
+from multiprocessing import Pool
 import os
-import json
 from utilities.utils import opt_mkdir, opt_makedirs
 import helper.my_kinetics400_downloader.tools as tools
 from tqdm import tqdm
@@ -182,6 +182,7 @@ def crosscheck_lists():
     for which in ['train', 'valid']:
         failed_list = set(tools.get_failed_list(which)) # list of ids
         failed_reasons_list = tools.get_failed_reasons_list(which)
+        
         if len(failed_reasons_list.shape) == 1:
             failed_reasons_list = list(failed_reasons_list)
         else:
@@ -252,6 +253,7 @@ def download_videos(vid_id, which):
 
     stdout, stderr = download_proc.communicate()
     stderr = stderr.decode('utf-8')
+    stderr = stderr.strip()
     if 'mkv' in stderr:
         raw_video_path = os.path.join(save_folder_path, '%s_raw.mkv' % vid_id)
 
@@ -262,16 +264,11 @@ def download_videos(vid_id, which):
         download_success = False
         opt_reason = stderr
 
+    # cut at indicated times
     if download_success:
-        # cut at indicated times
         clip_start, clip_end = tools.get_clip_times(which, vid_id)
-        # return_code = subprocess.call(["ffmpeg", "-loglevel", "quiet", "-i", raw_video_path, "-strict", "-2",
-        #                                "-ss", str(clip_start), "-to", str(clip_end), slice_path])
-        # cut_success = return_code == 0
-
         cut_command = "ffmpeg -loglevel quiet -i %s -strict -2 -ss %f -to %f %s" \
                            % (raw_video_path, clip_start, clip_end, slice_path)
-        
         cut_proc = subprocess.Popen(cut_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     
         stdout, stderr = cut_proc.communicate()
@@ -313,11 +310,17 @@ def add_success(which, vid_id):
             retry = tools.append_to_file(success_path, line)
 
 
-
 def add_failed_reason(which, vid_id, opt_reason):
-    failed_reason_list = tools.get_failed_reasons_list(which) # array, 2 x len
+    # failed_reason_list = tools.get_failed_reasons_list(which) # array, 2 x len
     failed_reason_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
-    if not vid_id in list(failed_reason_list[:,0]):
+
+    failed_reason_list = tools.get_failed_reasons_list(which)
+    if len(failed_reason_list.shape) == 1:
+        failed_reason_list = list(failed_reason_list)
+    else:
+        failed_reason_list = list(failed_reason_list[:,0])
+
+    if not vid_id in failed_reason_list:
     # if not vid_id in failed_reason_list:
 
         line = '%s,%s\n' % (vid_id, str(opt_reason))
@@ -327,7 +330,7 @@ def add_failed_reason(which, vid_id, opt_reason):
             time.sleep(0.5)
             retry = tools.append_to_file(failed_reason_path, line)
 
-# --7VUM9MKg4,
+
 def add_to_be_removed_from_failed(which, vid_id):
     tbr_fail_list = tools.get_to_be_removed_from_fail_list(which)
     tbr_fail_path = os.path.join(tools.fails, 'tbr_%s.txt' % which)
@@ -386,8 +389,54 @@ def run(mode, which, start, end):
           'Failures: %d' % (num_success, num_fails))
 
 
+def single_run(video_id, mode, which):
+    is_success, opt_reason = download_videos(video_id, which)
+
+    if is_success:
+        add_success(which, video_id)
+        if mode == 'only_failed':
+            add_to_be_removed_from_failed(which, video_id)
+        print('Success: %s' % video_id)
+    else:
+        assert opt_reason is not None
+        add_failed_reason(which, video_id, opt_reason)
+        print('Failure: %s  Reason: %s' % (video_id, opt_reason))
+
+        if '429' in opt_reason:
+            print('\n'
+                  '===================================================\n'
+                  'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
+                  '===================================================\n'
+                  '\n')
+            return
+
+        if mode == 'only_failed':
+            add_to_be_removed_from_failed(which, video_id)
+
+
+def run_parallel(mode, which, start, end, num_processes=10):
+    assert mode in ['only_failed', 'og_list']
+    assert which in ['train', 'valid']
+
+    print('===============================================================\n'
+          'Downloading mode=%s, which=%s, b=%d, e=%d, parallel\n'
+          '===============================================================\n'
+          % (mode, which, start, end))
+
+    download_list = make_download_list(mode, which)
+    download_list.sort()
+    download_list = download_list[start:end]
+
+    pool = Pool(processes=num_processes)
+    pool.apply_async(single_run)
+    pool.starmap(single_run, zip(download_list, repeat(mode), repeat(which)))
+
+
 # clean_up_partials()
 # crosscheck_lists()
 
 # total: 187535
 # run(mode='only_failed', which='train', start=0, end=10)
+
+run_parallel(mode='only_failed', which='train', start=0, end=30, num_processes=10)
+# run(mode='only_failed', which='train', start=0, end=5)
