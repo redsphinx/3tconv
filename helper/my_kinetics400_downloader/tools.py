@@ -88,13 +88,13 @@ def get_failed_list(which):
 def get_failed_reasons_list(which):
     failed_reasons_path = os.path.join(failed_reasons, '%s.txt' % which)
     if os.path.exists(failed_reasons_path):
-        return list(np.genfromtxt(failed_reasons_path, str, delimiter=',', skip_header=True))
+        return np.genfromtxt(failed_reasons_path, str, delimiter=',', skip_header=True)
     else:
         with open(failed_reasons_path, 'w') as my_file:
             line = 'id,reason\n'
             my_file.write(line)
             print('created file: %s' % failed_reasons_path)
-        return []
+        return np.array([])
 
     
 def get_success_list(which):

@@ -181,7 +181,12 @@ def crosscheck_lists():
     print('..checking failed and failed_reasons..')
     for which in ['train', 'valid']:
         failed_list = set(tools.get_failed_list(which)) # list of ids
-        failed_reasons_list = set(tools.get_failed_reasons_list(which)) # list of ids
+        failed_reasons_list = tools.get_failed_reasons_list(which)
+        if len(failed_reasons_list.shape) == 1:
+            failed_reasons_list = list(failed_reasons_list)
+        else:
+            failed_reasons_list = list(failed_reasons_list[:,0])
+        failed_reasons_list = set(failed_reasons_list) # list of ids
 
         overlap = failed_list.intersection(failed_reasons_list)
         new_failed = list(failed_list - overlap)
@@ -246,12 +251,16 @@ def download_videos(vid_id, which):
     download_proc = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
     stdout, stderr = download_proc.communicate()
+    stderr = stderr.decode('utf-8')
+    if 'mkv' in stderr:
+        raw_video_path = os.path.join(save_folder_path, '%s_raw.mkv' % vid_id)
+
     if download_proc.returncode == 0:
         download_success = True
         opt_reason = None
     else:
         download_success = False
-        opt_reason = stderr.decode('utf-8')
+        opt_reason = stderr
 
     if download_success:
         # cut at indicated times
@@ -306,10 +315,10 @@ def add_success(which, vid_id):
 
 
 def add_failed_reason(which, vid_id, opt_reason):
-    failed_reason_list = tools.get_failed_reasons_list(which)
+    failed_reason_list = tools.get_failed_reasons_list(which) # array, 2 x len
     failed_reason_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
-    # TODO: crashes here
-    if not vid_id in failed_reason_list:
+    if not vid_id in list(failed_reason_list[:,0]):
+    # if not vid_id in failed_reason_list:
 
         line = '%s,%s\n' % (vid_id, str(opt_reason))
         retry = tools.append_to_file(failed_reason_path, line)
@@ -318,7 +327,7 @@ def add_failed_reason(which, vid_id, opt_reason):
             time.sleep(0.5)
             retry = tools.append_to_file(failed_reason_path, line)
 
-
+# --7VUM9MKg4,
 def add_to_be_removed_from_failed(which, vid_id):
     tbr_fail_list = tools.get_to_be_removed_from_fail_list(which)
     tbr_fail_path = os.path.join(tools.fails, 'tbr_%s.txt' % which)
@@ -339,35 +348,46 @@ def run(mode, which, start, end):
 
     download_list = make_download_list(mode, which)
     download_list.sort()
-    print(download_list)
 
     print('=====================================================\n'
           'Downloading mode=%s, which=%s, b=%d, e=%d\n'
           '=====================================================\n'
           % (mode, which, start, end))
 
+    num_success = 0
+    num_fails = 0
     for i in tqdm(range(start, end)):
         video_id = download_list[i]
         is_success, opt_reason = download_videos(video_id, which)
 
         if is_success:
             add_success(which, video_id)
+            num_success += 1
             if mode == 'only_failed':
                 add_to_be_removed_from_failed(which, video_id)
-                # remove_from_failed(video_id)
         else:
             assert opt_reason is not None
             add_failed_reason(which, video_id, opt_reason)
-            # TODO:
-            '''
-            if failed reason is 429 then stop
-            '''
+            num_fails += 1
+            if '429' in opt_reason:
+                print('Successes: %d\n'
+                      'Failures: %d' % (num_success, num_fails))
+                print('\n'
+                      '===================================================\n'
+                      'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
+                      '===================================================\n'
+                      '\n')
+                return
 
             if mode == 'only_failed':
                 add_to_be_removed_from_failed(which, video_id)
-                # remove_from_failed(video_id)
+
+    print('Successes: %d\n'
+          'Failures: %d' % (num_success, num_fails))
 
 
 # clean_up_partials()
 # crosscheck_lists()
-run(mode='only_failed', which='valid', start=0, end=1000)
+
+# total: 187535
+# run(mode='only_failed', which='train', start=0, end=10)
