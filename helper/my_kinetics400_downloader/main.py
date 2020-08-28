@@ -435,8 +435,8 @@ def run_parallel(mode, which, start, end, num_processes=10):
 # clean_up_partials()
 # crosscheck_lists()
 
-# total: 187535
+# total: 187475
 # run(mode='only_failed', which='train', start=0, end=10)
 
-run_parallel(mode='only_failed', which='train', start=0, end=30, num_processes=10)
+run_parallel(mode='only_failed', which='train', start=0, end=187475, num_processes=20)
 # run(mode='only_failed', which='train', start=0, end=5)
