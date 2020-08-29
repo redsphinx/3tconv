@@ -1,3 +1,5 @@
+import time
+import subprocess
 from filelock import FileLock
 import numpy as np
 import os
@@ -89,7 +91,62 @@ def get_failed_list(which):
 def get_failed_reasons_list(which):
     failed_reasons_path = os.path.join(failed_reasons, '%s.txt' % which)
     if os.path.exists(failed_reasons_path):
-        return np.genfromtxt(failed_reasons_path, str, delimiter=',', skip_header=True)
+
+        def get_list():
+            the_list = None
+            err = None
+            try:
+                the_list = np.genfromtxt(failed_reasons_path, str, delimiter=',', skip_header=True)
+                retr = False
+            except ValueError or TimeoutError as err_:
+                retr = True
+                err = err_
+
+            return retr, the_list, err
+
+        def make_new_list():
+            try:
+                lock_path = failed_reasons_path.split('.txt')[0] + '.lock'
+                lock = FileLock(lock_path, timeout=1)
+                with lock:
+                    command = "cat %s | wc -l" % failed_reasons_path
+                    tmp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+                    num_lines, _ = tmp.communicate()
+                    num_lines = int(num_lines.decode('utf-8'))
+                    new_failed_reasons_path = os.path.join(failed_reasons, '%s_new.txt' % which)
+                    command = "cat %s | head -n %d >> %s" % (failed_reasons_path, num_lines-1, new_failed_reasons_path)
+                    subprocess.call(command, shell=True)
+                    replace(new_failed_reasons_path, failed_reasons_path)
+            except TimeoutError:
+                # another process is trying to correct it already
+                time.sleep(1)
+
+
+        retry, failed_reasons_list, error = get_list()
+
+        if not retry:
+            return failed_reasons_list
+
+        elif retry and type(error) == TimeoutError:
+            while retry:
+                time.sleep(1)
+                retry, failed_reasons_list, error = get_list()
+                if not retry:
+                    return failed_reasons_list
+
+        elif retry and type(error) == ValueError:
+            make_new_list()
+
+        retry, failed_reasons_list, error = get_list()
+        if not retry:
+            return failed_reasons_list
+
+        elif retry and type(error) == TimeoutError:
+            while retry:
+                retry, failed_reasons_list, error = get_list()
+                if not retry:
+                    return failed_reasons_list
+
     else:
         with open(failed_reasons_path, 'w') as my_file:
             line = 'id,reason\n'
