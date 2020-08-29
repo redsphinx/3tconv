@@ -1,3 +1,4 @@
+from filelock import FileLock
 import numpy as np
 import os
 from utilities.utils import opt_mkdir
@@ -124,11 +125,21 @@ def replace(p1, p2):
 
 
 def append_to_file(file_path, line):
+
+    lock_path = file_path.split('.txt')[0] + '.lock'
+
     try:
-        with open(file_path, 'a') as my_file:
-            my_file.write(line)
+        lock = FileLock(lock_path, timeout=1)
+        with lock:
+            with open(file_path, 'a') as my_file:
+                my_file.write(line)
+
             retry = False
-    except IOError:
+        # with open(file_path, 'a') as my_file:wh
+        #     my_file.write(line)
+
+    # except IOError:
+    except TimeoutError:
         retry = True
 
     return retry

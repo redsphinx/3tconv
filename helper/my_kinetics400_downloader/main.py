@@ -250,14 +250,14 @@ def add_success(which, vid_id):
         retry = tools.append_to_file(success_path, line)
         
         while retry:
-            time.sleep(0.5)
+            time.sleep(1)
             retry = tools.append_to_file(success_path, line)
 
 
 def add_failed_reason(which, vid_id, opt_reason):
     # failed_reason_list = tools.get_failed_reasons_list(which) # array, 2 x len
-    failed_reason_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
 
+    failed_reason_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
     failed_reason_list = tools.get_failed_reasons_list(which)
     if len(failed_reason_list.shape) == 1:
         failed_reason_list = list(failed_reason_list)
@@ -286,7 +286,7 @@ def add_to_be_removed_from_failed(which, vid_id):
         retry = tools.append_to_file(tbr_fail_path, line)
 
         while retry:
-            time.sleep(0.5)
+            time.sleep(1)
             retry = tools.append_to_file(tbr_fail_path, line)
 
 
@@ -380,8 +380,12 @@ def run_parallel(mode, which, start, end, num_processes=10):
 # clean_up_partials()
 # crosscheck_lists()
 
-# total: 186202
+# total: 181021
 # run(mode='only_failed', which='train', start=0, end=10)
 
-run_parallel(mode='only_failed', which='train', start=0, end=186202, num_processes=20)
+run_parallel(mode='only_failed', which='train', start=0, end=181021, num_processes=20)
+# run_parallel(mode='only_failed', which='train', start=0, end=9, num_processes=4)
 # run(mode='only_failed', which='train', start=0, end=5)
+
+# _path = os.path.join(tools.failed_reasons, 'train.txt')
+# tools.append_to_file(_path, 'GABI5\n')
