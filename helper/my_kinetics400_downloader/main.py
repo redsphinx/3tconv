@@ -349,14 +349,15 @@ def single_run(video_id, mode, which):
 
         if '429' in opt_reason:
             print('\n'
-                  '===================================================\n'
                   'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
-                  '===================================================\n'
                   '\n')
-            return
+            code = 429
+            return code
 
         if mode == 'only_failed':
             add_to_be_removed_from_failed(which, video_id)
+
+    return 0
 
 
 def run_parallel(mode, which, start, end, num_processes=10):
@@ -372,19 +373,31 @@ def run_parallel(mode, which, start, end, num_processes=10):
     download_list.sort()
     download_list = download_list[start:end]
 
-    pool = Pool(processes=num_processes)
-    pool.apply_async(single_run)
-    pool.starmap(single_run, zip(download_list, repeat(mode), repeat(which)))
+    if len(download_list) % num_processes == 0:
+        steps = len(download_list) // num_processes
+    else:
+        steps = len(download_list) // num_processes + 1
+
+    for i in range(steps):
+        sub_list = download_list[i*num_processes:(i+1)*num_processes]
+        pool = Pool(processes=num_processes)
+        pool.apply_async(single_run)
+
+        outputs = pool.starmap(single_run, zip(sub_list, repeat(mode), repeat(which)))
+        if 429 in outputs:
+            return
 
 
-# clean_up_partials()
-# crosscheck_lists()
 
-# total: 180148
+
+clean_up_partials()
+crosscheck_lists()
+
+# total: 124817
 # run(mode='only_failed', which='train', start=0, end=10)
 
-run_parallel(mode='only_failed', which='train', start=0, end=180148, num_processes=20)
-# run_parallel(mode='only_failed', which='train', start=0, end=9, num_processes=4)
+# run_parallel(mode='only_failed', which='train', start=0, end=124817, num_processes=20)
+# run_parallel(mode='only_failed', which='train', start=0, end=10, num_processes=2)
 # run(mode='only_failed', which='train', start=0, end=5)
 
 # _path = os.path.join(tools.failed_reasons, 'train.txt')
