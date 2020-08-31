@@ -183,23 +183,30 @@ def replace(p1, p2):
 
 def append_to_file(file_path, line):
 
-    lock_path = file_path.split('.txt')[0] + '.lock'
+    if type(line) == str:
+        lock_path = file_path.split('.txt')[0] + '.lock'
 
-    try:
-        lock = FileLock(lock_path, timeout=1)
-        with lock:
-            with open(file_path, 'a') as my_file:
-                my_file.write(line)
+        try:
+            lock = FileLock(lock_path, timeout=1)
+            with lock:
+                with open(file_path, 'a') as my_file:
+                    my_file.write(line)
 
-            retry = False
-        # with open(file_path, 'a') as my_file:wh
-        #     my_file.write(line)
+                retry = False
+            # with open(file_path, 'a') as my_file:wh
+            #     my_file.write(line)
 
-    # except IOError:
-    except TimeoutError:
-        retry = True
+        # except IOError:
+        except TimeoutError:
+            retry = True
 
-    return retry
+        return retry
+
+    elif type(line) == list:
+        with open(file_path, 'a') as my_file:
+            for i in line:
+                _l = '%s\n' % i
+                my_file.write(_l)
 
 
 def get_to_be_removed_from_fail_list(which):
@@ -243,6 +250,27 @@ def get_clip_times(which, vid_id):
     end = times[1]
     return start, end
 
+
+def write_new_file(which, new_file_path, old_file_path, the_new_list):
+
+    if 'failed_reason' in new_file_path:
+        assert ',' in the_new_list[0]
+
+    with open(new_file_path, 'w') as my_file:
+        if 'failed_reason' in new_file_path:
+            line = 'id,reason\n'
+            my_file.write(line)
+
+        for _i in the_new_list:
+            thing = _i.strip()
+            line = '%s\n' % thing
+            my_file.write(line)
+
+    print('..removed old path', which, old_file_path)
+
+    # =========================
+    replace(new_file_path, old_file_path)
+    # =========================
 
 
 # get_downloaded('train')

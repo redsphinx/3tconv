@@ -50,16 +50,18 @@ def crosscheck_lists():
             failed_path = os.path.join(tools.fails, '%s.txt' % which)
             tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
-            with open(tmp_failed_path, 'w') as my_file:
-                for vid_id in new_failed:
-                    line = '%s\n' % vid_id
-                    my_file.write(line)
+            tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
-            print('..removed old path', which, failed_path)
-
-            # =========================
-            tools.replace(tmp_failed_path, failed_path)
-            # =========================
+            # with open(tmp_failed_path, 'w') as my_file:
+            #     for vid_id in new_failed:
+            #         line = '%s\n' % vid_id
+            #         my_file.write(line)
+            #
+            # print('..removed old path', which, failed_path)
+            #
+            # # =========================
+            # tools.replace(tmp_failed_path, failed_path)
+            # # =========================
 
     print('done')
 
@@ -75,16 +77,18 @@ def crosscheck_lists():
             failed_path = os.path.join(tools.fails, '%s.txt' % which)
             tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
-            with open(tmp_failed_path, 'w') as my_file:
-                for vid_id in new_failed:
-                    line = '%s\n' % vid_id
-                    my_file.write(line)
+            tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
-            print('..removed old path', which, failed_path)
-
-            # =========================
-            tools.replace(tmp_failed_path, failed_path)
-            # =========================
+            # with open(tmp_failed_path, 'w') as my_file:
+            #     for vid_id in new_failed:
+            #         line = '%s\n' % vid_id
+            #         my_file.write(line)
+            #
+            # print('..removed old path', which, failed_path)
+            #
+            # # =========================
+            # tools.replace(tmp_failed_path, failed_path)
+            # # =========================
 
     print('done')
 
@@ -108,16 +112,18 @@ def crosscheck_lists():
             success_path = os.path.join(tools.successes, '%s.txt' % which)
             tmp_success_path = os.path.join(tools.successes, 'tmp_%s.txt' % which)
 
-            with open(tmp_success_path, 'w') as my_file:
-                for vid_id in success_list:
-                    line = '%s\n' % vid_id
-                    my_file.write(line)
+            tools.write_new_file(which, tmp_success_path, success_path, success_list)
 
-            print('..removed old path', which, success_path)
-
-            # =========================
-            tools.replace(tmp_success_path, success_path)
-            # =========================
+            # with open(tmp_success_path, 'w') as my_file:
+            #     for vid_id in success_list:
+            #         line = '%s\n' % vid_id
+            #         my_file.write(line)
+            #
+            # print('..removed old path', which, success_path)
+            #
+            # # =========================
+            # tools.replace(tmp_success_path, success_path)
+            # # =========================
 
     print('done')
 
@@ -140,16 +146,18 @@ def crosscheck_lists():
             failed_path = os.path.join(tools.fails, '%s.txt' % which)
             tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
-            with open(tmp_failed_path, 'w') as my_file:
-                for vid_id in new_failed:
-                    line = '%s\n' % vid_id
-                    my_file.write(line)
+            tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
-            print('..removed old path', which, failed_path)
-
-            # =========================
-            tools.replace(tmp_failed_path, failed_path)
-            # =========================
+            # with open(tmp_failed_path, 'w') as my_file:
+            #     for vid_id in new_failed:
+            #         line = '%s\n' % vid_id
+            #         my_file.write(line)
+            #
+            # print('..removed old path', which, failed_path)
+            #
+            # # =========================
+            # tools.replace(tmp_failed_path, failed_path)
+            # # =========================
 
     print('done')
     print('Finished checking lists')
@@ -290,6 +298,37 @@ def add_to_be_removed_from_failed(which, vid_id):
             retry = tools.append_to_file(tbr_fail_path, line)
 
 
+# check the failed_reasons_list for 429 errors; put the ids back on fail_list, remove them from failed_reasons_list
+def clean_up_errors_fr_list(error_type):
+    # error_type = str, for example '429' or 'mkv'
+    for which in ['train', 'valid']:
+        failed_reasons_list = tools.get_failed_reasons_list(which)
+        fail_list = tools.get_failed_list(which)
+
+        to_be_added_to_failed_list = []
+        to_keep_failed_reasons = []
+
+        fr_vid_ids = failed_reasons_list[:, 0]
+        reasons = failed_reasons_list[:, 1]
+        for _r in range(len(reasons)):
+            if error_type in reasons[_r]:
+                if not fr_vid_ids[_r] in fail_list:
+                    to_be_added_to_failed_list.append(fr_vid_ids[_r])
+
+            else:
+                to_keep_failed_reasons.append('%s,%s' % (fr_vid_ids[_r], reasons[_r]))
+
+        failed_path = os.path.join(tools.fails, '%s.txt' % which)
+        tools.append_to_file(failed_path, to_be_added_to_failed_list)
+
+        old_failed_reasons_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
+        new_failed_reasons_path = os.path.join(tools.failed_reasons, 'tmp_%s.txt' % which)
+        tools.write_new_file(which, new_failed_reasons_path, old_failed_reasons_path, to_keep_failed_reasons)
+
+
+# clean_up_errors_fr_list('429')
+
+
 def run(mode, which, start, end):
     assert mode in ['only_failed', 'og_list']
     assert which in ['train', 'valid']
@@ -315,20 +354,21 @@ def run(mode, which, start, end):
                 add_to_be_removed_from_failed(which, video_id)
         else:
             assert opt_reason is not None
-            add_failed_reason(which, video_id, opt_reason)
             num_fails += 1
+
             if '429' in opt_reason:
                 print('Successes: %d\n'
                       'Failures: %d' % (num_success, num_fails))
                 print('\n'
-                      '===================================================\n'
                       'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
-                      '===================================================\n'
                       '\n')
                 return
+            else:
+                add_failed_reason(which, video_id, opt_reason)
+                if mode == 'only_failed':
+                    add_to_be_removed_from_failed(which, video_id)
 
-            if mode == 'only_failed':
-                add_to_be_removed_from_failed(which, video_id)
+
 
     print('Successes: %d\n'
           'Failures: %d' % (num_success, num_fails))
@@ -344,8 +384,6 @@ def single_run(video_id, mode, which):
         print('Success: %s' % video_id)
     else:
         assert opt_reason is not None
-        add_failed_reason(which, video_id, opt_reason)
-        print('Failure: %s  Reason: %s' % (video_id, opt_reason))
 
         if '429' in opt_reason:
             print('\n'
@@ -353,9 +391,11 @@ def single_run(video_id, mode, which):
                   '\n')
             code = 429
             return code
-
-        if mode == 'only_failed':
-            add_to_be_removed_from_failed(which, video_id)
+        else:
+            add_failed_reason(which, video_id, opt_reason)
+            print('Failure: %s  Reason: %s' % (video_id, opt_reason))
+            if mode == 'only_failed':
+                add_to_be_removed_from_failed(which, video_id)
 
     return 0
 
@@ -388,17 +428,15 @@ def run_parallel(mode, which, start, end, num_processes=10):
             return
 
 
-
-
-clean_up_partials()
-crosscheck_lists()
+# clean_up_partials()
+# crosscheck_lists()
 
 # total: 124817
 # run(mode='only_failed', which='train', start=0, end=10)
 
 # run_parallel(mode='only_failed', which='train', start=0, end=124817, num_processes=20)
 # run_parallel(mode='only_failed', which='train', start=0, end=10, num_processes=2)
-# run(mode='only_failed', which='train', start=0, end=5)
+# run(mode='only_failed', which='train', start=0, end=1)
 
 # _path = os.path.join(tools.failed_reasons, 'train.txt')
 # tools.append_to_file(_path, 'GABI5\n')
