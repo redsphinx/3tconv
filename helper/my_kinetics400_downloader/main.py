@@ -52,17 +52,6 @@ def crosscheck_lists():
 
             tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
-            # with open(tmp_failed_path, 'w') as my_file:
-            #     for vid_id in new_failed:
-            #         line = '%s\n' % vid_id
-            #         my_file.write(line)
-            #
-            # print('..removed old path', which, failed_path)
-            #
-            # # =========================
-            # tools.replace(tmp_failed_path, failed_path)
-            # # =========================
-
     print('done')
 
     # check failed and downloads: if on downloads+failed, remove from failed
@@ -78,17 +67,6 @@ def crosscheck_lists():
             tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
             tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
-
-            # with open(tmp_failed_path, 'w') as my_file:
-            #     for vid_id in new_failed:
-            #         line = '%s\n' % vid_id
-            #         my_file.write(line)
-            #
-            # print('..removed old path', which, failed_path)
-            #
-            # # =========================
-            # tools.replace(tmp_failed_path, failed_path)
-            # # =========================
 
     print('done')
 
@@ -114,17 +92,6 @@ def crosscheck_lists():
 
             tools.write_new_file(which, tmp_success_path, success_path, success_list)
 
-            # with open(tmp_success_path, 'w') as my_file:
-            #     for vid_id in success_list:
-            #         line = '%s\n' % vid_id
-            #         my_file.write(line)
-            #
-            # print('..removed old path', which, success_path)
-            #
-            # # =========================
-            # tools.replace(tmp_success_path, success_path)
-            # # =========================
-
     print('done')
 
     # check failed and failed_reasons: if on both, remove from failed
@@ -147,17 +114,6 @@ def crosscheck_lists():
             tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
             tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
-
-            # with open(tmp_failed_path, 'w') as my_file:
-            #     for vid_id in new_failed:
-            #         line = '%s\n' % vid_id
-            #         my_file.write(line)
-            #
-            # print('..removed old path', which, failed_path)
-            #
-            # # =========================
-            # tools.replace(tmp_failed_path, failed_path)
-            # # =========================
 
     print('done')
     print('Finished checking lists')
@@ -386,9 +342,9 @@ def single_run(video_id, mode, which):
         assert opt_reason is not None
 
         if '429' in opt_reason:
-            print('\n'
-                  'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
-                  '\n')
+            # print('\n'
+            #       'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
+            #       '\n')
             code = 429
             return code
         else:
@@ -404,29 +360,71 @@ def run_parallel(mode, which, start, end, num_processes=10):
     assert mode in ['only_failed', 'og_list']
     assert which in ['train', 'valid']
 
-    print('===============================================================\n'
-          'Downloading mode=%s, which=%s, b=%d, e=%d, parallel\n'
-          '===============================================================\n'
-          % (mode, which, start, end))
-
     download_list = make_download_list(mode, which)
     download_list.sort()
     download_list = download_list[start:end]
 
-    if len(download_list) % num_processes == 0:
-        steps = len(download_list) // num_processes
-    else:
-        steps = len(download_list) // num_processes + 1
+    if len(download_list) >= num_processes:
 
-    for i in range(steps):
-        sub_list = download_list[i*num_processes:(i+1)*num_processes]
+        if len(download_list) % num_processes == 0:
+            steps = len(download_list) // num_processes
+        else:
+            steps = len(download_list) // num_processes + 1
+
+        for i in range(steps):
+            sub_list = download_list[i*num_processes:(i+1)*num_processes]
+            pool = Pool(processes=num_processes)
+            pool.apply_async(single_run)
+
+            outputs = pool.starmap(single_run, zip(sub_list, repeat(mode), repeat(which)))
+
+            if 429 in outputs:
+                return True
+    else:
+        num_processes = len(download_list)
         pool = Pool(processes=num_processes)
         pool.apply_async(single_run)
 
-        outputs = pool.starmap(single_run, zip(sub_list, repeat(mode), repeat(which)))
-        if 429 in outputs:
-            return
+        outputs = pool.starmap(single_run, zip(download_list, repeat(mode), repeat(which)))
 
+        if 429 in outputs:
+            return True
+
+
+def run_parallel_and_wait():
+    which = 'train'
+    num_to_download = len(tools.get_failed_list(which))
+    print(num_to_download)
+    mode = 'only_failed'
+    num_processes = 20
+    start = 0
+
+    start_date = time.strftime("%b %d %Y %H:%M:%S")
+
+    print('====================================================================\n'
+          'Downloading mode=%s, which=%s, b=%d, e=%d, parallel & wait\n'
+          '====================================================================\n'
+          % (mode, which, start, num_to_download))
+
+
+    while num_to_download > 0:
+        wait = run_parallel(mode=mode, which=which, start=start, end=num_to_download, num_processes=num_processes)
+
+        time.sleep(5)
+        clean_up_partials()
+        crosscheck_lists()
+        num_to_download = len(tools.get_failed_list(which))
+
+        if wait and num_to_download > 0:
+            print('%s   waiting...' % time.strftime("%b %d %Y %H:%M:%S"))
+            time.sleep(900) # 15 mins
+
+    end_date = time.strftime("%b %d %Y %H:%M:%S")
+    print('=============================================================================\n'
+          'Finished. Start date: %s, End date: %s\n'
+          'Mode: %s, which: %s\n'
+          '=============================================================================\n'
+          % (start_date, end_date, mode, which))
 
 # clean_up_partials()
 # crosscheck_lists()
@@ -440,3 +438,5 @@ def run_parallel(mode, which, start, end, num_processes=10):
 
 # _path = os.path.join(tools.failed_reasons, 'train.txt')
 # tools.append_to_file(_path, 'GABI5\n')
+
+run_parallel_and_wait()
