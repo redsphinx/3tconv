@@ -439,4 +439,7 @@ def run_parallel_and_wait():
 # _path = os.path.join(tools.failed_reasons, 'train.txt')
 # tools.append_to_file(_path, 'GABI5\n')
 
+clean_up_partials()
+crosscheck_lists()
+
 run_parallel_and_wait()
