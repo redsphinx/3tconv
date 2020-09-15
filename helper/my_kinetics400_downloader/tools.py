@@ -1,3 +1,7 @@
+from tqdm import tqdm
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 import time
 import subprocess
 from filelock import FileLock
@@ -5,10 +9,11 @@ import numpy as np
 import os
 from utilities.utils import opt_mkdir
 import json
+# import helper.my_kinetics400_downloader.main as M
 
 
 main_path = '/fast/gabras/kinetics400_downloader/dataset'
-jsons = '/fast/gabras/kinetics400_downloader/resources'
+resources = '/fast/gabras/kinetics400_downloader/resources'
 # stats_path = '/fast/gabras/kinetics400_downloader/download_stats'
 fails = '/fast/gabras/kinetics400_downloader/fails'
 successes = '/fast/gabras/kinetics400_downloader/successes'
@@ -18,6 +23,9 @@ og_failed_path = '/fast/gabras/kinetics400_downloader/dataset/failed.txt'
 # tmp_failed_path = '/fast/gabras/kinetics400_downloader/dataset/tmp_failed.txt'
 # success_path = '/fast/gabras/kinetics400_downloader/dataset/success.txt'
 # tmp_success_path = '/fast/gabras/kinetics400_downloader/dataset/tmp_success.txt'
+
+download_plots = '/fast/gabras/kinetics400_downloader/plots_download_progress'
+
 
 # opt_mkdir(stats_path)
 # opt_mkdir(fails)
@@ -30,12 +38,14 @@ def get_all_video_ids(which):
     if which == 'valid':
         which = 'val'
 
-    src_path = os.path.join(jsons, 'kinetics_%s.json' % which)
+    src_path = os.path.join(resources, 'kinetics_%s.json' % which)
     with open(src_path) as json_file:
         data = json.load(json_file)
     keys_list = list(data.keys())
     return keys_list
 
+# the_list = get_all_video_ids('valid')
+# print(len(the_list))
 
 def get_downloaded_list(which, full_path=False):
     which_path = os.path.join(main_path, which)
@@ -231,7 +241,7 @@ def fix_category_text(name):
 def get_category(which, vid_id):
     if which == 'valid':
         which = 'val'
-    src_path = os.path.join(jsons, 'kinetics_%s.json' % which)
+    src_path = os.path.join(resources, 'kinetics_%s.json' % which)
     with open(src_path) as json_file:
         data = json.load(json_file)
     category = data[vid_id]['annotations']['label']
@@ -242,7 +252,7 @@ def get_category(which, vid_id):
 def get_clip_times(which, vid_id):
     if which == 'valid':
         which = 'val'
-    src_path = os.path.join(jsons, 'kinetics_%s.json' % which)
+    src_path = os.path.join(resources, 'kinetics_%s.json' % which)
     with open(src_path) as json_file:
         data = json.load(json_file)
     times = data[vid_id]['annotations']['segment']
@@ -273,6 +283,87 @@ def write_new_file(which, new_file_path, old_file_path, the_new_list):
     # =========================
 
 
+def get_total_per_category_list(which):
+    assert which in ['test', 'train', 'valid']
+    num_categories = 400
+    
+    vid_categories_path = os.path.join(resources, '%s_vids_categories.txt' % which)
+    
+    if not os.path.exists(vid_categories_path):
+        which_path = os.path.join(main_path, which)
+        all_categories = os.listdir(which_path)
+        all_categories.sort()
+
+        total = [0]*num_categories
+        total_ids = get_all_video_ids(which)
+
+        if which == 'valid':
+            which = 'val'
+        src_path = os.path.join(resources, 'kinetics_%s.json' % which)
+        with open(src_path) as json_file:
+            data = json.load(json_file)
+
+        for vid in tqdm(total_ids):
+            cat = data[vid]['annotations']['label']
+            cat = fix_category_text(cat)
+
+            _ind = all_categories.index(cat)
+            total[_ind] = total[_ind] + 1
+
+        # write to file
+        with open(vid_categories_path, 'w') as my_file:
+            for i in range(num_categories):
+                line = '%s,%d\n' % (all_categories[i], total[i])
+                my_file.write(line)
+
+    total_final = np.genfromtxt(vid_categories_path, str, delimiter=',', skip_header=False)
+
+    return total_final
+
+
+def download_progress_per_class(which):
+    assert which in ['test', 'train', 'valid']
+
+    path = os.path.join(main_path, which)
+    all_categories = os.listdir(path)
+    all_categories.sort()
+
+    num_categories = len(all_categories)
+
+    current_count = []
+    for i in range(num_categories):
+        cat = all_categories[i]
+        num_vids_in_cat = len(os.listdir(os.path.join(path, cat)))
+        current_count.append(num_vids_in_cat)
+
+    total = get_total_per_category_list(which)
+
+    bins = list(np.arange(10, 110, 10))
+    bin_count = [0]*len(bins)
+
+    for i in range(num_categories):
+        try:
+            ratio = current_count[i] / int(total[i, 1]) * 100
+        except TypeError:
+            print('here')
+
+        for j, v in enumerate(bins):
+            if ratio < v:
+                bin_count[j] = bin_count[j] + 1
+                break
+
+    p1 = plt.bar(bins, bin_count)
+    plt.ylabel('categories (400 total)')
+    plt.xlabel('percentage successful downloads')
+    plt.title('%s successful downloads across categories' % which)
+    xticks = ['%d-%d' % (i - bins[0], i) for i in bins]
+    plt.xticks(bins, xticks)
+
+    current_date = time.strftime("%Y_%m_%d_%H_%M_%S")
+    save_location = os.path.join(download_plots, '%s_%s.jpg' % (which, current_date))
+    plt.savefig(save_location)
+
+
 # get_downloaded('train')
 # get_downloaded('valid')
 # get_downloaded('test')
@@ -284,3 +375,6 @@ def write_new_file(which, new_file_path, old_file_path, the_new_list):
 # total valid videos: 19906
 # successfully downloaded: 4472
 # listed as failed: 222611
+
+# get_total_per_category_list('train')
+# download_progress_per_class('train')

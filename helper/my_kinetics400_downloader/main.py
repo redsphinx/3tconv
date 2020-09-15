@@ -9,7 +9,7 @@ import subprocess
 
 
 main_path = tools.main_path
-jsons = tools.jsons
+resources = tools.resources
 
 # only use once after downloads have crashed
 # removes partial files (non .mp4) from downloads
@@ -373,13 +373,17 @@ def run_parallel(mode, which, start, end, num_processes=10):
 
         for i in range(steps):
             sub_list = download_list[i*num_processes:(i+1)*num_processes]
-            pool = Pool(processes=num_processes)
-            pool.apply_async(single_run)
+            try:
+                pool = Pool(processes=num_processes)
+                pool.apply_async(single_run)
 
-            outputs = pool.starmap(single_run, zip(sub_list, repeat(mode), repeat(which)))
+                outputs = pool.starmap(single_run, zip(sub_list, repeat(mode), repeat(which)))
 
-            if 429 in outputs:
-                return True
+                if 429 in outputs:
+                    return True
+            except OSError:
+                print('OSError, too many open files')
+                return False
     else:
         num_processes = len(download_list)
         pool = Pool(processes=num_processes)
@@ -439,7 +443,6 @@ def run_parallel_and_wait():
 # _path = os.path.join(tools.failed_reasons, 'train.txt')
 # tools.append_to_file(_path, 'GABI5\n')
 
-clean_up_partials()
-crosscheck_lists()
-
+# clean_up_partials()
+# crosscheck_lists()
 run_parallel_and_wait()
