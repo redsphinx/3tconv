@@ -155,8 +155,12 @@ def download_videos(vid_id, which):
         opt_reason = 'download_complete'
         return is_success, opt_reason
 
-    download_command = "youtube-dl https://youtube.com/watch?v=%s --quiet -f bestvideo[ext=%s]+bestaudio/best --output %s --no-continue" \
-                       % (vid_id, video_format, raw_video_path)
+    # HERE
+    cookies_path = '/fast/gabras/kinetics400_downloader/cookies.txt'
+    # HERE
+
+    download_command = "youtube-dl https://youtube.com/watch?v=%s --cookies %s --quiet -f bestvideo[ext=%s]+bestaudio/best --output %s --no-continue" \
+                       % (vid_id, cookies_path, video_format, raw_video_path)
     download_proc = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
     stdout, stderr = download_proc.communicate()
@@ -180,6 +184,7 @@ def download_videos(vid_id, which):
         cut_proc = subprocess.Popen(cut_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     
         stdout, stderr = cut_proc.communicate()
+
         if cut_proc.returncode == 0:
             cut_success = True
             opt_reason = None
@@ -193,6 +198,8 @@ def download_videos(vid_id, which):
             # =========================
             os.remove(raw_video_path)
             # =========================
+
+        cut_proc.kill()
             
     else:
         cut_success = False
@@ -201,6 +208,10 @@ def download_videos(vid_id, which):
         is_success = True
     else:
         is_success = False
+
+    download_proc.kill()
+    del(stderr)
+    del(stdout)
 
     return is_success, opt_reason
 
@@ -383,7 +394,7 @@ def run_parallel(mode, which, start, end, num_processes=10):
                     return True
             except OSError:
                 print('OSError, too many open files')
-                return False
+                return 'oserror'
     else:
         num_processes = len(download_list)
         pool = Pool(processes=num_processes)
@@ -419,9 +430,17 @@ def run_parallel_and_wait():
         crosscheck_lists()
         num_to_download = len(tools.get_failed_list(which))
 
-        if wait and num_to_download > 0:
-            print('%s   waiting...' % time.strftime("%b %d %Y %H:%M:%S"))
-            time.sleep(900) # 15 mins
+        if wait == 'oserror':
+            tools.download_progress_per_class(which)
+            print('Progress plot saved')
+            print('OSError encountered, stopping process')
+            return
+
+        wait_time = 900 # 15 mins
+        if type(wait) is bool:
+            if wait and num_to_download > 0:
+                print('%s   [429 error] Waiting %d seconds before retry...' % (time.strftime("%b %d %Y %H:%M:%S"), wait_time))
+                time.sleep(wait_time)
 
     end_date = time.strftime("%b %d %Y %H:%M:%S")
     print('=============================================================================\n'
@@ -430,19 +449,8 @@ def run_parallel_and_wait():
           '=============================================================================\n'
           % (start_date, end_date, mode, which))
 
-# clean_up_partials()
-# crosscheck_lists()
-
-# total: 124817
-# run(mode='only_failed', which='train', start=0, end=10)
-
-# run_parallel(mode='only_failed', which='train', start=0, end=124817, num_processes=20)
-# run_parallel(mode='only_failed', which='train', start=0, end=10, num_processes=2)
-# run(mode='only_failed', which='train', start=0, end=1)
-
-# _path = os.path.join(tools.failed_reasons, 'train.txt')
-# tools.append_to_file(_path, 'GABI5\n')
 
 # clean_up_partials()
 # crosscheck_lists()
+
 run_parallel_and_wait()

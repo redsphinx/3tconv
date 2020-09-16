@@ -342,22 +342,30 @@ def download_progress_per_class(which):
     bin_count = [0]*len(bins)
 
     for i in range(num_categories):
-        try:
-            ratio = current_count[i] / int(total[i, 1]) * 100
-        except TypeError:
-            print('here')
+        ratio = current_count[i] / int(total[i, 1]) * 100
 
         for j, v in enumerate(bins):
             if ratio < v:
                 bin_count[j] = bin_count[j] + 1
                 break
 
-    p1 = plt.bar(bins, bin_count)
-    plt.ylabel('categories (400 total)')
-    plt.xlabel('percentage successful downloads')
-    plt.title('%s successful downloads across categories' % which)
+    fig, ax = plt.subplots()
+    p1 = ax.bar(bins, bin_count)
+    ax.set_ylim(0, 400)
+    ax.set_ylabel('classes (400 total)')
+    ax.set_xlabel('percentage successful downloads')
+    ax.set_title('%s successful downloads across classes' % which)
     xticks = ['%d-%d' % (i - bins[0], i) for i in bins]
     plt.xticks(bins, xticks)
+
+    for plot in p1:
+        height = plot.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(plot.get_x() + plot.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+        # ax.text(v + 3, i + .25, str(v))
 
     current_date = time.strftime("%Y_%m_%d_%H_%M_%S")
     save_location = os.path.join(download_plots, '%s_%s.jpg' % (which, current_date))
