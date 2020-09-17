@@ -155,10 +155,7 @@ def download_videos(vid_id, which):
         opt_reason = 'download_complete'
         return is_success, opt_reason
 
-    # HERE
     cookies_path = '/fast/gabras/kinetics400_downloader/cookies.txt'
-    # HERE
-
     download_command = "youtube-dl https://youtube.com/watch?v=%s --cookies %s --quiet -f bestvideo[ext=%s]+bestaudio/best --output %s --no-continue" \
                        % (vid_id, cookies_path, video_format, raw_video_path)
     download_proc = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -344,6 +341,8 @@ def run(mode, which, start, end):
 def single_run(video_id, mode, which):
     is_success, opt_reason = download_videos(video_id, which)
 
+    code = 0
+
     if is_success:
         add_success(which, video_id)
         if mode == 'only_failed':
@@ -354,17 +353,17 @@ def single_run(video_id, mode, which):
 
         if '429' in opt_reason:
             code = 429
-            return code
         elif 'cookie' in opt_reason:
             code = 42
-            return code
+        elif 'MemoryError' in opt_reason:
+            code = 3
         else:
             add_failed_reason(which, video_id, opt_reason)
             print('Failure: %s  Reason: %s' % (video_id, opt_reason))
             if mode == 'only_failed':
                 add_to_be_removed_from_failed(which, video_id)
 
-    return 0
+    return code
 
 
 def run_parallel(mode, which, start, end, num_processes=10):
@@ -376,20 +375,25 @@ def run_parallel(mode, which, start, end, num_processes=10):
     download_list = download_list[start:end]
 
     def inner_run(a_list):
+        dec = None
         try:
             pool = Pool(processes=num_processes)
             pool.apply_async(single_run)
 
             outputs = pool.starmap(single_run, zip(a_list, repeat(mode), repeat(which)))
 
-            if 429 in outputs:
-                return True
-            elif 42 in outputs:
-                return False
+            if 429 in outputs: # too many http requests
+                dec = True
+            elif 42 in outputs: # cookie error
+                dec = False
+            elif 3 in outputs: # memory error
+                dec = False
 
         except OSError:
             print('OSError, too many open files')
-            return 'oserror'
+            dec = 'oserror'
+
+        return dec
 
     if len(download_list) >= num_processes:
 
@@ -401,7 +405,8 @@ def run_parallel(mode, which, start, end, num_processes=10):
         for i in range(steps):
             sub_list = download_list[i*num_processes:(i+1)*num_processes]
             decision = inner_run(sub_list)
-            return decision
+            if decision is not None:
+                return decision
     else:
         num_processes = len(download_list)
         decision = inner_run(download_list)
