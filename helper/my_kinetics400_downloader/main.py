@@ -353,10 +353,10 @@ def single_run(video_id, mode, which):
         assert opt_reason is not None
 
         if '429' in opt_reason:
-            # print('\n'
-            #       'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
-            #       '\n')
             code = 429
+            return code
+        elif 'cookie' in opt_reason:
+            code = 42
             return code
         else:
             add_failed_reason(which, video_id, opt_reason)
@@ -375,6 +375,22 @@ def run_parallel(mode, which, start, end, num_processes=10):
     download_list.sort()
     download_list = download_list[start:end]
 
+    def inner_run(a_list):
+        try:
+            pool = Pool(processes=num_processes)
+            pool.apply_async(single_run)
+
+            outputs = pool.starmap(single_run, zip(a_list, repeat(mode), repeat(which)))
+
+            if 429 in outputs:
+                return True
+            elif 42 in outputs:
+                return False
+
+        except OSError:
+            print('OSError, too many open files')
+            return 'oserror'
+
     if len(download_list) >= num_processes:
 
         if len(download_list) % num_processes == 0:
@@ -384,26 +400,13 @@ def run_parallel(mode, which, start, end, num_processes=10):
 
         for i in range(steps):
             sub_list = download_list[i*num_processes:(i+1)*num_processes]
-            try:
-                pool = Pool(processes=num_processes)
-                pool.apply_async(single_run)
-
-                outputs = pool.starmap(single_run, zip(sub_list, repeat(mode), repeat(which)))
-
-                if 429 in outputs:
-                    return True
-            except OSError:
-                print('OSError, too many open files')
-                return 'oserror'
+            decision = inner_run(sub_list)
+            return decision
     else:
         num_processes = len(download_list)
-        pool = Pool(processes=num_processes)
-        pool.apply_async(single_run)
+        decision = inner_run(download_list)
+        return decision
 
-        outputs = pool.starmap(single_run, zip(download_list, repeat(mode), repeat(which)))
-
-        if 429 in outputs:
-            return True
 
 
 def run_parallel_and_wait():
