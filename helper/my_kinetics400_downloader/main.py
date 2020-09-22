@@ -99,7 +99,7 @@ def crosscheck_lists():
     for which in ['train', 'valid']:
         failed_list = set(tools.get_failed_list(which)) # list of ids
         failed_reasons_list = tools.get_failed_reasons_list(which)
-        
+
         if len(failed_reasons_list.shape) == 1:
             failed_reasons_list = list(failed_reasons_list)
         else:
@@ -155,7 +155,7 @@ def download_videos(vid_id, which):
         opt_reason = 'download_complete'
         return is_success, opt_reason
 
-    cookies_path = '/fast/gabras/kinetics400_downloader/cookies.txt'
+    cookies_path = '/fast/gabras/kinetics400_downloader/cookies2.txt'
     download_command = "youtube-dl https://youtube.com/watch?v=%s --cookies %s --quiet -f bestvideo[ext=%s]+bestaudio/best --output %s --no-continue" \
                        % (vid_id, cookies_path, video_format, raw_video_path)
     download_proc = subprocess.Popen(download_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -179,7 +179,7 @@ def download_videos(vid_id, which):
         cut_command = "ffmpeg -loglevel quiet -i %s -strict -2 -ss %f -to %f %s" \
                            % (raw_video_path, clip_start, clip_end, slice_path)
         cut_proc = subprocess.Popen(cut_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    
+
         stdout, stderr = cut_proc.communicate()
 
         if cut_proc.returncode == 0:
@@ -197,7 +197,7 @@ def download_videos(vid_id, which):
             # =========================
 
         cut_proc.kill()
-            
+
     else:
         cut_success = False
 
@@ -220,7 +220,7 @@ def add_success(which, vid_id):
 
         line = '%s\n' % vid_id
         retry = tools.append_to_file(success_path, line)
-        
+
         while retry:
             time.sleep(1)
             retry = tools.append_to_file(success_path, line)
@@ -419,7 +419,7 @@ def run_parallel_and_wait():
     num_to_download = len(tools.get_failed_list(which))
     print(num_to_download)
     mode = 'only_failed'
-    num_processes = 20
+    num_processes = 100
     start = 0
 
     start_date = time.strftime("%b %d %Y %H:%M:%S")
@@ -444,7 +444,7 @@ def run_parallel_and_wait():
             print('OSError encountered, stopping process')
             return
 
-        wait_time = 900 # 15 mins
+        wait_time = 10 # 15 mins
         if type(wait) is bool:
             if wait and num_to_download > 0:
                 print('%s   [429 error] Waiting %d seconds before retry...' % (time.strftime("%b %d %Y %H:%M:%S"), wait_time))
@@ -458,7 +458,7 @@ def run_parallel_and_wait():
           % (start_date, end_date, mode, which))
 
 
-# clean_up_partials()
-# crosscheck_lists()
-
+clean_up_partials()
+crosscheck_lists()
+tools.download_progress_per_class('train')
 run_parallel_and_wait()

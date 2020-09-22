@@ -44,7 +44,7 @@ def get_all_video_ids(which):
     keys_list = list(data.keys())
     return keys_list
 
-# the_list = get_all_video_ids('valid')
+# the_list = get_all_video_ids('train')
 # print(len(the_list))
 
 def get_downloaded_list(which, full_path=False):
