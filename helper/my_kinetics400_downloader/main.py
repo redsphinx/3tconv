@@ -231,16 +231,32 @@ def add_failed_reason(which, vid_id, opt_reason):
 
     failed_reason_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
     failed_reason_list = tools.get_failed_reasons_list(which)
+
+    if failed_reason_list is None:
+        # remove last line until it works
+        # tmp_fr_path = os.path.join(tools.failed_reasons, 'tmp_%s.txt' % which)
+        retry = True
+        while retry:
+            # command = "cat %s | head -n -1 > %s" % (failed_reason_path, tmp_fr_path)
+            # subprocess.call(command, shell=True)
+            # tools.replace(tmp_fr_path, failed_reason_path, with_lock=True)
+            failed_reason_list = tools.get_failed_reasons_list(which)
+            if failed_reason_list is not None:
+                retry = False
+
     if len(failed_reason_list.shape) == 1:
         failed_reason_list = list(failed_reason_list)
     else:
-        failed_reason_list = list(failed_reason_list[:,0])
+        failed_reason_list = list(failed_reason_list[:, 0])
+
 
     if not vid_id in failed_reason_list:
-    # if not vid_id in failed_reason_list:
+        # prevent from writing many lines
+        opt_reason = opt_reason.strip()
+        if opt_reason.count('\n') > 0:
+            opt_reason = opt_reason.split('\n')[0]
 
         line = '%s,%s\n' % (vid_id, str(opt_reason))
-        assert ',' in line
         retry = tools.append_to_file(failed_reason_path, line)
 
         while retry:

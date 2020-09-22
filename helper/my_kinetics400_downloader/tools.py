@@ -84,7 +84,6 @@ def fix_failed_list():
                 my_file.write(line)
 
 
-# fix_failed_list()
 
 
 def get_failed_list(which):
@@ -108,7 +107,7 @@ def get_failed_reasons_list(which):
             try:
                 the_list = np.genfromtxt(failed_reasons_path, str, delimiter=',', skip_header=True)
                 retr = False
-            except ValueError or TimeoutError as err_:
+            except ValueError or TimeoutError or AttributeError as err_:
                 retr = True
                 err = err_
 
@@ -119,12 +118,8 @@ def get_failed_reasons_list(which):
                 lock_path = failed_reasons_path.split('.txt')[0] + '.lock'
                 lock = FileLock(lock_path, timeout=1)
                 with lock:
-                    command = "cat %s | wc -l" % failed_reasons_path
-                    tmp = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-                    num_lines, _ = tmp.communicate()
-                    num_lines = int(num_lines.decode('utf-8'))
                     new_failed_reasons_path = os.path.join(failed_reasons, '%s_new.txt' % which)
-                    command = "cat %s | head -n %d >> %s" % (failed_reasons_path, num_lines-1, new_failed_reasons_path)
+                    command = "cat %s | head -n -1 > %s" % (failed_reasons_path, new_failed_reasons_path)
                     subprocess.call(command, shell=True)
                     replace(new_failed_reasons_path, failed_reasons_path)
             except TimeoutError:
@@ -146,6 +141,11 @@ def get_failed_reasons_list(which):
 
         elif retry and type(error) == ValueError:
             make_new_list()
+
+        elif retry and type(error) == AttributeError:
+            while retry:
+                make_new_list()
+                retry, failed_reasons_list, error = get_list()
 
         retry, failed_reasons_list, error = get_list()
         if not retry:
@@ -177,18 +177,19 @@ def get_success_list(which):
 
 def replace(p1, p2):
     # replaces p2 with p1
-    assert os.path.exists(p1)
-    # assert os.path.exists(p2)
-    if os.path.exists(p2):
-        os.remove(p2)
-    os.rename(p1, p2)
-    # os.remove(p1)
-
+    # p1 = new file
+    # p2 = old file
     # example:
     # replace(tmp_failed_path, failed_path)
     # os.remove(failed_path)
     # os.rename(tmp_failed_path, failed_path)
     # os.remove(tmp_failed_path)
+
+    assert os.path.exists(p1)
+    if os.path.exists(p2):
+        os.remove(p2)
+    os.rename(p1, p2)
+
 
 
 def append_to_file(file_path, line):
@@ -217,6 +218,7 @@ def append_to_file(file_path, line):
             for i in line:
                 _l = '%s\n' % i
                 my_file.write(_l)
+
 
 
 def get_to_be_removed_from_fail_list(which):
