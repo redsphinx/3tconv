@@ -13,110 +13,117 @@ resources = tools.resources
 
 # only use once after downloads have crashed
 # removes partial files (non .mp4) from downloads
-def clean_up_partials():
+def clean_up_partials(which):
 
     print('Removing partial files...')
     cnt = 0
-    for which in ['train', 'valid']:
-        download_list = tools.get_downloaded_list(which, full_path=True) # list of strings
+    # for which in ['train', 'valid']:
+    download_list = tools.get_downloaded_list(which, full_path=True) # list of strings
 
-        for word in ['part', 'ytdl', '_raw']:
-            filtered_download_list = list(filter(lambda x:word in x, download_list))
-            for to_be_del in filtered_download_list:
-                if os.path.exists(to_be_del):
+    for word in ['part', 'ytdl', '_raw']:
+        filtered_download_list = list(filter(lambda x:word in x, download_list))
+        for to_be_del in filtered_download_list:
+            if os.path.exists(to_be_del):
 
-                    # =========================
-                    os.remove(to_be_del)
-                    # =========================
+                # =========================
+                os.remove(to_be_del)
+                # =========================
 
-                    cnt += 1
+                cnt += 1
     print('%d partial files removed' % cnt)
 
 
 # only use once after downloads have crashed
 # runs a sanity check to find inconsistencies between lists
-def crosscheck_lists():
+def crosscheck_lists(which):
     print('\nCrosschecking lists...')
 
     # check failed and tbr_failed: if on both, remove from failed
     print('..checking failed and tbr_failed..')
-    for which in ['train', 'valid']:
-        tbr_failed_list = set(tools.get_to_be_removed_from_fail_list(which)) # list of ids
-        failed_list = set(tools.get_failed_list(which)) # list of ids
-        overlap = tbr_failed_list.intersection(failed_list)
-        new_failed = list(failed_list - overlap)
+    # for which in ['train', 'valid']:
+    tbr_failed_list = set(tools.get_to_be_removed_from_fail_list(which)) # list of ids
+    failed_list = set(tools.get_failed_list(which)) # list of ids
+    overlap = tbr_failed_list.intersection(failed_list)
+    new_failed = list(failed_list - overlap)
 
-        if len(overlap) > 0:
-            failed_path = os.path.join(tools.fails, '%s.txt' % which)
-            tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
+    if len(overlap) > 0:
+        failed_path = os.path.join(tools.fails, '%s.txt' % which)
+        tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
-            tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
+        tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
     print('done')
 
     # check failed and downloads: if on downloads+failed, remove from failed
     print('..checking downloads and failed..')
-    for which in ['train', 'valid']:
-        download_list = set(tools.get_downloaded_list(which, full_path=False)) # list of ids
-        failed_list = set(tools.get_failed_list(which)) # list of ids
-        overlap = download_list.intersection(failed_list)
-        new_failed = list(failed_list - overlap)
+    # for which in ['train', 'valid']:
+    download_list = set(tools.get_downloaded_list(which, full_path=False)) # list of ids
+    failed_list = set(tools.get_failed_list(which)) # list of ids
+    overlap = download_list.intersection(failed_list)
+    new_failed = list(failed_list - overlap)
 
-        if len(overlap) > 0:
-            failed_path = os.path.join(tools.fails, '%s.txt' % which)
-            tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
+    if len(overlap) > 0:
+        failed_path = os.path.join(tools.fails, '%s.txt' % which)
+        tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
-            tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
+        tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
     print('done')
 
     # check downloads and success:
     print('..checking downloads and success..')
-    for which in ['train', 'valid']:
-        download_list = set(tools.get_downloaded_list(which, full_path=False)) # list of ids
-        success_list = set(tools.get_success_list(which)) # list of ids
+    # for which in ['train', 'valid']:
+    download_list = set(tools.get_downloaded_list(which, full_path=False)) # list of ids
+    success_list = set(tools.get_success_list(which)) # list of ids
 
-        # if on success and not download, remove from success
-        on_success_not_download = success_list.difference(download_list)
-        success_list = success_list - on_success_not_download
+    # if on success and not download, remove from success
+    on_success_not_download = success_list.difference(download_list)
+    success_list = success_list - on_success_not_download
 
-        # if on download and not success, add to success
-        on_download_not_success = download_list.difference(success_list)
-        tmp = success_list.update(on_download_not_success)
-        if tmp is not None:
-            success_list = list(success_list.update(on_download_not_success))
+    # if on download and not success, add to success
+    on_download_not_success = download_list.difference(success_list)
+    tmp = success_list.update(on_download_not_success)
+    if tmp is not None:
+        success_list = list(success_list.update(on_download_not_success))
 
-        if len(on_download_not_success) > 0 or len(on_success_not_download) > 0:
-            success_path = os.path.join(tools.successes, '%s.txt' % which)
-            tmp_success_path = os.path.join(tools.successes, 'tmp_%s.txt' % which)
+    if len(on_download_not_success) > 0 or len(on_success_not_download) > 0:
+        success_path = os.path.join(tools.successes, '%s.txt' % which)
+        tmp_success_path = os.path.join(tools.successes, 'tmp_%s.txt' % which)
 
-            tools.write_new_file(which, tmp_success_path, success_path, success_list)
+        tools.write_new_file(which, tmp_success_path, success_path, success_list)
 
     print('done')
 
     # check failed and failed_reasons: if on both, remove from failed
     print('..checking failed and failed_reasons..')
-    for which in ['train', 'valid']:
-        failed_list = set(tools.get_failed_list(which)) # list of ids
-        failed_reasons_list = tools.get_failed_reasons_list(which)
+    # for which in ['train', 'valid']:
+    failed_list = set(tools.get_failed_list(which)) # list of ids
+    failed_reasons_list = tools.get_failed_reasons_list(which)
 
-        if len(failed_reasons_list.shape) == 1:
-            failed_reasons_list = list(failed_reasons_list)
-        else:
-            failed_reasons_list = list(failed_reasons_list[:,0])
-        failed_reasons_list = set(failed_reasons_list) # list of ids
+    if len(failed_reasons_list.shape) == 1:
+        failed_reasons_list = list(failed_reasons_list)
+    else:
+        failed_reasons_list = list(failed_reasons_list[:,0])
+    failed_reasons_list = set(failed_reasons_list) # list of ids
 
-        overlap = failed_list.intersection(failed_reasons_list)
-        new_failed = list(failed_list - overlap)
+    overlap = failed_list.intersection(failed_reasons_list)
+    new_failed = list(failed_list - overlap)
 
-        if len(overlap) > 0:
-            failed_path = os.path.join(tools.fails, '%s.txt' % which)
-            tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
+    if len(overlap) > 0:
+        failed_path = os.path.join(tools.fails, '%s.txt' % which)
+        tmp_failed_path = os.path.join(tools.fails, 'tmp_%s.txt' % which)
 
-            tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
+        tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
     print('done')
     print('Finished checking lists')
+
+
+def clean_up_failed_reasons_list(which):
+    failed_reasons_list = tools.get_failed_reasons_list(which)
+    reasons = set(failed_reasons_list[:,1])
+    # TODO: for videos with "already exists" check if path exists. if true, then remove entry from list
+    pass
 
 
 def make_download_list(mode, which):
@@ -393,10 +400,13 @@ def run_parallel(mode, which, start, end, num_processes=10):
     def inner_run(a_list):
         dec = None
         try:
-            pool = Pool(processes=num_processes)
-            pool.apply_async(single_run)
+            if num_processes == 1:
+                outputs = single_run(a_list[0], mode, which)
+            else:
+                pool = Pool(processes=num_processes)
+                pool.apply_async(single_run)
 
-            outputs = pool.starmap(single_run, zip(a_list, repeat(mode), repeat(which)))
+                outputs = pool.starmap(single_run, zip(a_list, repeat(mode), repeat(which)))
 
             if 429 in outputs: # too many http requests
                 dec = True
@@ -430,8 +440,8 @@ def run_parallel(mode, which, start, end, num_processes=10):
 
 
 
-def run_parallel_and_wait():
-    which = 'train'
+def run_parallel_and_wait(which):
+    # which = 'train'
     num_to_download = len(tools.get_failed_list(which))
     print(num_to_download)
     mode = 'only_failed'
@@ -450,8 +460,8 @@ def run_parallel_and_wait():
         wait = run_parallel(mode=mode, which=which, start=start, end=num_to_download, num_processes=num_processes)
 
         time.sleep(5)
-        clean_up_partials()
-        crosscheck_lists()
+        clean_up_partials(which)
+        crosscheck_lists(which)
         num_to_download = len(tools.get_failed_list(which))
 
         if wait == 'oserror':
@@ -460,7 +470,7 @@ def run_parallel_and_wait():
             print('OSError encountered, stopping process')
             return
 
-        wait_time = 10 # 15 mins
+        wait_time = 10
         if type(wait) is bool:
             if wait and num_to_download > 0:
                 print('%s   [429 error] Waiting %d seconds before retry...' % (time.strftime("%b %d %Y %H:%M:%S"), wait_time))
@@ -473,8 +483,13 @@ def run_parallel_and_wait():
           '=============================================================================\n'
           % (start_date, end_date, mode, which))
 
+wch = 'valid'
+clean_up_partials(wch)
+crosscheck_lists(wch)
+tools.download_progress_per_class(wch)
+run_parallel_and_wait(wch)
 
-clean_up_partials()
-crosscheck_lists()
-tools.download_progress_per_class('train')
-run_parallel_and_wait()
+
+# train: 246534
+# valid: 19906
+# test: 38685

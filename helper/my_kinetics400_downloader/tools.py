@@ -26,6 +26,7 @@ og_failed_path = '/fast/gabras/kinetics400_downloader/dataset/failed.txt'
 
 download_plots = '/fast/gabras/kinetics400_downloader/plots_download_progress'
 
+unable_to_download = '/fast/gabras/kinetics400_downloader/unable_to_download'
 
 # opt_mkdir(stats_path)
 # opt_mkdir(fails)
@@ -44,8 +45,12 @@ def get_all_video_ids(which):
     keys_list = list(data.keys())
     return keys_list
 
-# the_list = get_all_video_ids('train')
+# the_list = get_all_video_ids('test')
 # print(len(the_list))
+# train: 246534
+# valid: 19906
+# test: 38685
+
 
 def get_downloaded_list(which, full_path=False):
     which_path = os.path.join(main_path, which)
@@ -90,7 +95,12 @@ def get_failed_list(which):
     
     failed_path = os.path.join(fails, '%s.txt' % which)
     if os.path.exists(failed_path):
-        return list(np.genfromtxt(failed_path, str))
+        fp = np.genfromtxt(failed_path, str)
+        if fp.shape == ():
+            fp = str(fp)
+            return [fp]
+        else:
+            return list(fp)
     else:
         with open(failed_path, 'w') as my_file:
             print('created file: %s' % failed_path)
