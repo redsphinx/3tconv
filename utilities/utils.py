@@ -408,3 +408,12 @@ def resize_data(data):  # torch.Size([1, 3, 30, 150, 224])
     return reduced_input
 
 
+def normalize_between(value, vmin, vmax, low, high):
+    if isinstance(value, np.ndarray):
+        vmin = np.tile(vmin, value.shape)
+        vmax = np.tile(vmax, value.shape)
+        low = np.tile(low, value.shape)
+        high = np.tile(high, value.shape)
+
+    result = (value - vmin) / (vmax - vmin) * (high - low) + low
+    return result

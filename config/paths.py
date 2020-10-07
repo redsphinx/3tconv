@@ -27,6 +27,15 @@ ucf101_168_224_train = '/fast/gabras/ucf101/data_168_224/train'
 ucf101_168_224_test = '/fast/gabras/ucf101/data_168_224/test'
 ucf101_168_224_xai = '/fast/gabras/ucf101/data_168_224/xai'
 
+# GAFF (Gabor AFFine)
+gaff_root = '/fast/gabras/gaff'
+gaff_train = '/fast/gabras/gaff/dataset/train'
+gaff_val = '/fast/gabras/gaff/dataset/val'
+gaff_test = '/fast/gabras/gaff/dataset/test'
+gaff_meta = '/fast/gabras/gaff/metadata'
+gaff_samples = '/fast/gabras/gaff/samples'
+
+
 
 # todo: IMPORTANT: DO NOT CHANGE EXISTING PATHS. SHIT WILL BE DELETED.
 # todo: IF YOU REALLY REALLY WANT TO, MAKE SURE WRITER_PATH IS VALID -> see main_file.py
