@@ -119,10 +119,36 @@ def crosscheck_lists(which):
     print('Finished checking lists')
 
 
+def get_video_with_error(which, error_name):
+    file_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
+
+    command = "cat %s | grep '%s'" % (file_path, error_name)
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    stdout, stderr = proc.communicate()
+    stdout = stdout.decode('utf-8')
+    stdout = stdout.strip()
+
+    if error_name == 'already exists. Overwrite':
+        result = stdout.split('\n')
+        result = [i.split(',')[0] for i in result]
+    else:
+        print('ERROR: function not implemented for this error_name')
+        return
+
+    return result
+
+
 def clean_up_failed_reasons_list(which):
-    failed_reasons_list = tools.get_failed_reasons_list(which)
-    reasons = set(failed_reasons_list[:,1])
-    # TODO: for videos with "already exists" check if path exists. if true, then remove entry from list
+
+    # for videos with "already exists" check if path exists. if true, then remove entry from list
+    success_list = set(tools.get_success_list(which))
+    video_names = set(get_video_with_error(which, 'already exists. Overwrite'))
+    overlap = video_names.intersection(success_list)
+    # removed from list with bash
+
+    # in bash: write the new failed_reason list to fails
+    # make the new failed_reasons list empty. later we can check which ones again do not download
+
     pass
 
 
@@ -134,8 +160,10 @@ def make_download_list(mode, which):
         total_list = set(tools.get_all_video_ids(which))
         failed_list = set(tools.get_failed_list(which))
         success_list = set(tools.get_success_list(which))
+        unable_list = set(tools.get_unable_list(which))
+        failed_reason_list = set(tools.get_failed_reasons_list(which)[:,0])
 
-        download_list = list(total_list - failed_list - success_list)
+        download_list = list(total_list - failed_list - success_list - unable_list - failed_reason_list)
 
     else:
         download_list = None
@@ -170,13 +198,23 @@ def download_videos(vid_id, which):
     stdout, stderr = download_proc.communicate()
     stderr = stderr.decode('utf-8')
     stderr = stderr.strip()
+
+
+    if 'Syntax error' in stderr:
+        print('here1')
+
+    elif 'No such file or directory' in stderr:
+        print('here2')
+
     if 'mkv' in stderr:
         raw_video_path = os.path.join(save_folder_path, '%s_raw.mkv' % vid_id)
-
-    if download_proc.returncode == 0:
+        download_success = True
+    elif download_proc.returncode == 0:
         download_success = True
         opt_reason = None
     else:
+        if "YouTube said: Unable" not in stderr:
+            print('here')
         download_success = False
         opt_reason = stderr
 
@@ -323,42 +361,35 @@ def run(mode, which, start, end):
     download_list = make_download_list(mode, which)
     download_list.sort()
 
+    if start is None:
+        start = 0
+    if end is None:
+        end = len(download_list)
+
     print('=====================================================\n'
           'Downloading mode=%s, which=%s, b=%d, e=%d\n'
           '=====================================================\n'
           % (mode, which, start, end))
 
-    num_success = 0
-    num_fails = 0
     for i in tqdm(range(start, end)):
         video_id = download_list[i]
-        is_success, opt_reason = download_videos(video_id, which)
 
-        if is_success:
-            add_success(which, video_id)
-            num_success += 1
-            if mode == 'only_failed':
-                add_to_be_removed_from_failed(which, video_id)
-        else:
-            assert opt_reason is not None
-            num_fails += 1
+        try:
+            outputs = single_run(video_id, mode, which)
 
-            if '429' in opt_reason:
-                print('Successes: %d\n'
-                      'Failures: %d' % (num_success, num_fails))
-                print('\n'
-                      'ERROR 429 ENCOUNTERED. PROCESS WILL TERMINATE NOW.'
-                      '\n')
-                return
-            else:
-                add_failed_reason(which, video_id, opt_reason)
-                if mode == 'only_failed':
-                    add_to_be_removed_from_failed(which, video_id)
+            outputs = [outputs]
 
+            if 429 in outputs: # too many http requests
+                dec = True
+            elif 42 in outputs: # cookie error
+                dec = False
+            elif 3 in outputs: # memory error
+                dec = False
 
+        except OSError:
+            print('OSError, too many open files')
+            dec = 'oserror'
 
-    print('Successes: %d\n'
-          'Failures: %d' % (num_success, num_fails))
 
 
 def single_run(video_id, mode, which):
@@ -441,10 +472,17 @@ def run_parallel(mode, which, start, end, num_processes=10):
 
 
 def run_parallel_and_wait(which):
-    # which = 'train'
-    num_to_download = len(tools.get_failed_list(which))
+
+    mode = 'og_list'
+    # mode = 'only_failed'
+
+    if mode == 'only_failed':
+        num_to_download = len(tools.get_failed_list(which))
+    else:
+        num_to_download = len(make_download_list(mode, which))
+
     print(num_to_download)
-    mode = 'only_failed'
+
     num_processes = 100
     start = 0
 
@@ -483,12 +521,15 @@ def run_parallel_and_wait(which):
           '=============================================================================\n'
           % (start_date, end_date, mode, which))
 
-wch = 'valid'
+
+# attempting download of failed ones
+wch = 'train'
 clean_up_partials(wch)
 crosscheck_lists(wch)
 tools.download_progress_per_class(wch)
-run_parallel_and_wait(wch)
 
+run_parallel_and_wait(wch)
+# run('og_list', wch, None, None)
 
 # train: 246534
 # valid: 19906

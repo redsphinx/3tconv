@@ -384,6 +384,17 @@ def download_progress_per_class(which):
     plt.savefig(save_location)
 
 
+def get_unable_list(which):
+    unable_path = os.path.join(unable_to_download, '%s.txt' % which)
+    if os.path.exists(unable_path):
+        return list(np.genfromtxt(unable_path, str))
+    else:
+        with open(unable_path, 'w') as my_file:
+            print('created file: %s' % unable_path)
+        return []
+
+
+
 # get_downloaded('train')
 # get_downloaded('valid')
 # get_downloaded('test')
