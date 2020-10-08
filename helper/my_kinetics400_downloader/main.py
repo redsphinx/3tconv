@@ -115,8 +115,41 @@ def crosscheck_lists(which):
 
         tools.write_new_file(which, tmp_failed_path, failed_path, new_failed)
 
+    # check success and failed_reasons: if on both, remove from failed_reasons
+    print('..checking success and failed_reasons..')
+    # for which in ['train', 'valid']:
+    success_list = set(tools.get_success_list(which)) # list of ids
+    full_failed_reasons_list = tools.get_failed_reasons_list(which)
+
+    if len(full_failed_reasons_list.shape) == 1:
+        failed_reasons_list = list(full_failed_reasons_list)
+    else:
+        failed_reasons_list = list(full_failed_reasons_list[:,0])
+
+    failed_reasons_list_list = failed_reasons_list # list of ids
+    failed_reasons_list = set(failed_reasons_list) # set of ids
+
+    overlap = success_list.intersection(failed_reasons_list)
+    new_failed_reason = list(failed_reasons_list - overlap)
+
+    if len(overlap) > 0:
+        failed_reasons_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
+        tmp_failed_reasons_path = os.path.join(tools.failed_reasons, 'tmp_%s.txt' % which)
+
+        full_new_failed_reason = []
+
+        for i, v in enumerate(new_failed_reason):
+            index = failed_reasons_list_list.index(v)
+            full_text = full_failed_reasons_list[index]
+            line = '%s,%s' % (full_text[0], full_text[1])
+            full_new_failed_reason.append(line)
+
+        tools.write_new_file(which, tmp_failed_reasons_path, failed_reasons_path, full_new_failed_reason)
+
     print('done')
     print('Finished checking lists')
+
+
 
 
 def get_video_with_error(which, error_name):
@@ -141,15 +174,26 @@ def get_video_with_error(which, error_name):
 def clean_up_failed_reasons_list(which):
 
     # for videos with "already exists" check if path exists. if true, then remove entry from list
-    success_list = set(tools.get_success_list(which))
-    video_names = set(get_video_with_error(which, 'already exists. Overwrite'))
-    overlap = video_names.intersection(success_list)
+    # success_list = set(tools.get_success_list(which))
+    # video_names = set(get_video_with_error(which, 'already exists. Overwrite'))
+    # overlap = video_names.intersection(success_list)
     # removed from list with bash
 
     # in bash: write the new failed_reason list to fails
     # make the new failed_reasons list empty. later we can check which ones again do not download
 
+    success_list = set(tools.get_success_list(which))
+    failed_reasons_list = set(tools.get_failed_reasons_list(which)[:, 0])
+    unable_list = set(tools.get_unable_list(which))
+    total_list = set(tools.get_all_video_ids(which))
+
+
+
+    print('asdf')
+
     pass
+
+
 
 
 def make_download_list(mode, which):
@@ -500,7 +544,10 @@ def run_parallel_and_wait(which):
         time.sleep(5)
         clean_up_partials(which)
         crosscheck_lists(which)
-        num_to_download = len(tools.get_failed_list(which))
+        if mode == 'only_failed':
+            num_to_download = len(tools.get_failed_list(which))
+        else:
+            num_to_download = len(make_download_list(mode, which))
 
         if wait == 'oserror':
             tools.download_progress_per_class(which)
@@ -523,12 +570,12 @@ def run_parallel_and_wait(which):
 
 
 # attempting download of failed ones
-wch = 'train'
-clean_up_partials(wch)
-crosscheck_lists(wch)
-tools.download_progress_per_class(wch)
+# wch = 'train'
+# clean_up_partials(wch)
+# crosscheck_lists(wch)
+# tools.download_progress_per_class(wch)
 
-run_parallel_and_wait(wch)
+# run_parallel_and_wait(wch)
 # run('og_list', wch, None, None)
 
 # train: 246534

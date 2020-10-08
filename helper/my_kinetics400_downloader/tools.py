@@ -333,7 +333,7 @@ def get_total_per_category_list(which):
     return total_final
 
 
-def download_progress_per_class(which):
+def download_progress_per_class(which, save_plot=True, print_numbers=False):
     assert which in ['test', 'train', 'valid']
 
     path = os.path.join(main_path, which)
@@ -341,6 +341,7 @@ def download_progress_per_class(which):
     all_categories.sort()
 
     num_categories = len(all_categories)
+    category_count = []
 
     current_count = []
     for i in range(num_categories):
@@ -355,33 +356,46 @@ def download_progress_per_class(which):
 
     for i in range(num_categories):
         ratio = current_count[i] / int(total[i, 1]) * 100
+        category_count.append(ratio)
+
+        if ratio > 99:
+            print('asdf')
 
         for j, v in enumerate(bins):
             if ratio < v:
                 bin_count[j] = bin_count[j] + 1
                 break
+    if save_plot:
+        fig, ax = plt.subplots()
+        p1 = ax.bar(bins, bin_count)
+        ax.set_ylim(0, 400)
+        ax.set_ylabel('classes (400 total)')
+        ax.set_xlabel('percentage successful downloads')
+        ax.set_title('%s successful downloads across classes' % which)
+        xticks = ['%d-%d' % (i - bins[0], i) for i in bins]
+        plt.xticks(bins, xticks)
 
-    fig, ax = plt.subplots()
-    p1 = ax.bar(bins, bin_count)
-    ax.set_ylim(0, 400)
-    ax.set_ylabel('classes (400 total)')
-    ax.set_xlabel('percentage successful downloads')
-    ax.set_title('%s successful downloads across classes' % which)
-    xticks = ['%d-%d' % (i - bins[0], i) for i in bins]
-    plt.xticks(bins, xticks)
+        for plot in p1:
+            height = plot.get_height()
+            ax.annotate('{}'.format(height),
+                        xy=(plot.get_x() + plot.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+            # ax.text(v + 3, i + .25, str(v))
 
-    for plot in p1:
-        height = plot.get_height()
-        ax.annotate('{}'.format(height),
-                    xy=(plot.get_x() + plot.get_width() / 2, height),
-                    xytext=(0, 3),  # 3 points vertical offset
-                    textcoords="offset points",
-                    ha='center', va='bottom')
-        # ax.text(v + 3, i + .25, str(v))
+        current_date = time.strftime("%Y_%m_%d_%H_%M_%S")
+        save_location = os.path.join(download_plots, '%s_%s.jpg' % (which, current_date))
+        plt.savefig(save_location)
 
-    current_date = time.strftime("%Y_%m_%d_%H_%M_%S")
-    save_location = os.path.join(download_plots, '%s_%s.jpg' % (which, current_date))
-    plt.savefig(save_location)
+    if print_numbers:
+        zipped = list(zip(category_count, all_categories))
+        zipped.sort(reverse=False)
+        for i in zipped:
+            print(i)
+
+
+download_progress_per_class('train', True, True)
 
 
 def get_unable_list(which):
@@ -392,6 +406,39 @@ def get_unable_list(which):
         with open(unable_path, 'w') as my_file:
             print('created file: %s' % unable_path)
         return []
+
+
+def get_category_info(which, list_name):
+    assert which in ['test', 'train', 'valid']
+
+    if list_name == 'failed_reasons':
+        the_list = get_failed_reasons_list(which)[:, 0]
+    elif list_name == 'unable':
+        the_list = get_unable_list(which)
+
+        all_categories = os.listdir(os.path.join(main_path, which))
+        category_count = np.zeros(len(all_categories))
+
+        if which == 'valid':
+            which = 'val'
+        src_path = os.path.join(resources, 'kinetics_%s.json' % which)
+        with open(src_path) as json_file:
+            data = json.load(json_file)
+
+        for i, v in enumerate(the_list):
+            category = data[v]['annotations']['label']
+            category = fix_category_text(category)
+
+            index = all_categories.index(category)
+            category_count[index] = category_count[index] + 1
+
+        # sort
+        zipped = list(zip(category_count, all_categories))
+        zipped.sort(reverse=True)
+        for i in zipped:
+            print(i)
+
+
 
 
 
