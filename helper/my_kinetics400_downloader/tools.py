@@ -395,7 +395,7 @@ def download_progress_per_class(which, save_plot=True, print_numbers=False):
             print(i)
 
 
-download_progress_per_class('train', True, True)
+# download_progress_per_class('train', True, True)
 
 
 def get_unable_list(which):
@@ -439,7 +439,43 @@ def get_category_info(which, list_name):
             print(i)
 
 
+def get_catstat_list(which, category):
+    catstat_path = os.path.join(main_path, which, category, 'stats.txt')
+    if os.path.exists(catstat_path):
+        return np.genfromtxt(catstat_path, str, delimiter=',')
+    else:
+        with open(catstat_path, 'w') as my_file:
+            print('created file: %s' % catstat_path)
+            # header: video_id,height,width,frames,orientation
+        return np.array([])
 
+
+def get_all_video_paths(which):
+    all_videos_path = os.path.join(resources, 'all_video_paths.txt')
+
+    if not os.path.exists(all_videos_path):
+        all_paths = []
+        which_path = os.path.join(main_path, which)
+        categories = os.listdir(which_path)
+
+        with open(all_videos_path, 'a') as my_file:
+            for cat in categories:
+                cat_path = os.path.join(which_path, cat)
+                videos = os.listdir(cat_path)
+                for vid in videos:
+                    vid_path = os.path.join(cat_path, vid)
+                    all_paths.append(vid_path)
+
+                    line = '%s\n' % vid_path
+                    my_file.write(line)
+
+        return all_paths
+
+    else:
+        return list(np.genfromtxt(all_videos_path, str))
+
+
+# alist = get_all_video_paths('train')
 
 
 # get_downloaded('train')

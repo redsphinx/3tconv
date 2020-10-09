@@ -367,6 +367,27 @@ def add_to_be_removed_from_failed(which, vid_id):
             retry = tools.append_to_file(tbr_fail_path, line)
 
 
+def add_category_statistic(which, category, stats):
+    # stats = video_id,height,width,frames,orientation
+    catstat_list = tools.get_catstat_list(which, category)
+    catstat_path = os.path.join(main_path, which, category, 'stats.txt')
+    if len(catstat_list) == 0:
+        catstat_ids = []
+    elif len(catstat_list.shape) == 1:
+        catstat_ids = [catstat_list[0]]
+    else:
+        catstat_ids = list(catstat_list[:, 0])
+
+    if stats[0] not in catstat_ids:
+
+        line = '%s,%d,%d,%d,%s\n' % (stats[0], stats[1], stats[2], stats[3], stats[4])
+        retry = tools.append_to_file(catstat_path, line)
+
+        while retry:
+            time.sleep(1)
+            retry = tools.append_to_file(catstat_path, line)
+
+
 # check the failed_reasons_list for 429 errors; put the ids back on fail_list, remove them from failed_reasons_list
 def clean_up_errors_fr_list(error_type):
     # error_type = str, for example '429' or 'mkv'
