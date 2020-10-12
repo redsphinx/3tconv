@@ -109,17 +109,75 @@ def all_videos(which, start, end, parallel=False, num_processes=10):
             single_video(p)
 
 
-beg = time.time()
-print('getting information...')
-all_videos('train', 0, None, parallel=True, num_processes=20)
-# all_videos('train', 0, 3)
-the_end = time.time()
+def aggregate_stats(which):
 
-duration = the_end - beg
-print(duration, 'sec')
+    def save_figure(var, var_count, title, save_path):
+        fig, ax = plt.subplots(figsize=(8,8))
+
+        max_bin = 20
+        if len(var) >= max_bin:
+            var = var[:max_bin]
+            var_count = var_count[:max_bin]
+
+        p1 = ax.bar(var, var_count)
+        ax.set_ylabel('count')
+        ax.set_title(title)
+        # xticks = ['%d-%d' % (i - var[0], i) for i in var]
+        # plt.xticks(var, xticks)
+        plt.xticks(np.arange(len(var)), var, rotation='vertical')
+
+        # for plot in p1:-
+        #     height = plot.get_height()
+        #     ax.annotate('{}'.format(height),
+        #                 xy=(plot.get_x() + plot.get_width() / 2, height),
+        #                 xytext=(0, 3),  # 3 points vertical offset
+        #                 textcoords="offset points",
+        #                 ha='center', va='bottom')
+        plt.savefig(save_path)
+
+    def add_to_dict(which_dict, which_list):
+        uniq = list(set(which_list))
+        uniq.sort()
+        for i in uniq:
+            try:
+                which_dict[i] = which_dict[i] + which_list.count(i)
+            except KeyError:
+                which_dict[i] = which_list.count(i)
+
+        return which_dict
 
 
-# p_only_audio = '/fast/gabras/kinetics400_downloader/dataset/train/playing_poker/TaJmMqa4k9M.mp4'
-# p_square = '/fast/gabras/kinetics400_downloader/dataset/train/hoverboarding/U41Gtikqg98.mp4'
-# p_portrait = '/fast/gabras/kinetics400_downloader/dataset/train/hoverboarding/OuxEfxIJLUk.mp4'
-# p_landscape= '/fast/gabras/kinetics400_downloader/dataset/train/playing_poker/Ba2AlQktRRM.mp4'
+    which_path = os.path.join(tools.main_path, which)
+    cat_folders = os.listdir(which_path)
+    cat_folders.sort()
+
+    stats_orientation = {'landscape':0, 'portrait':0, 'square':0}
+    stats_frames = {}
+    stats_h_w = {}
+
+    for cf in cat_folders:
+        cat_stat_path = os.path.join(which_path, cf, 'stats.txt')
+        cat_stat = np.genfromtxt(cat_stat_path, 'str', delimiter=',')
+        h_w = cat_stat[:, 1:3]
+        frames = list(cat_stat[:, 3])
+        orientation = list(cat_stat[:, 4])
+
+        new_h_w = ['%s,%s' % (h_w[i, 0], h_w[i, 1]) for i in range(len(h_w))]
+        stats_h_w = add_to_dict(stats_h_w, new_h_w)
+        stats_frames = add_to_dict(stats_frames, frames)
+        stats_orientation = add_to_dict(stats_orientation, orientation)
+
+    names = ['stats_h_w', 'stats_frames', 'stats_orientation']
+    for i, which_stats in enumerate([stats_h_w, stats_frames, stats_orientation]):
+        stats = list(which_stats.keys())
+        stats.sort()
+        stats_count = [which_stats[j] for j in stats]
+
+        zipped = list(zip(stats_count, stats))
+        zipped.sort(reverse=True)
+        stats_count, stats = zip(*zipped)
+
+        s_path = os.path.join(tools.resources, '%s.jpg' % names[i])
+        save_figure(stats, stats_count, names[i], s_path)
+
+
