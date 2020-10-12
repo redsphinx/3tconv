@@ -109,7 +109,7 @@ def all_videos(which, start, end, parallel=False, num_processes=10):
             single_video(p)
 
 
-def aggregate_stats(which):
+def aggregate_stats(which, save_fig=True):
 
     def save_figure(var, var_count, title, save_path):
         fig, ax = plt.subplots(figsize=(8,8))
@@ -177,7 +177,72 @@ def aggregate_stats(which):
         zipped.sort(reverse=True)
         stats_count, stats = zip(*zipped)
 
-        s_path = os.path.join(tools.resources, '%s.jpg' % names[i])
-        save_figure(stats, stats_count, names[i], s_path)
+        print('%s Top 3 highest:' % names[i])
+        for j in range(3):
+            print('%s   %s' % (stats[j], stats_count[j]))
+
+        if names[i] == 'stats_h_w':
+            h_w = np.genfromtxt(stats, int, delimiter=',')
+            _h = list(h_w[:, 0])
+            _w = list(h_w[:, 1])
+            zipped = list(zip(_h, _w))
+            zipped.sort()
+            _h, _w = zip(*zipped)
+            print('min h: %d x %d\n'
+                  'max h: %d x %d' % (_h[0], _w[0], _h[-1], _w[-1]))
+            zipped = list(zip(_w, _h))
+            zipped.sort()
+            _w, _h = zip(*zipped)
+            print('min w: %d x %d\n'
+                  'max w: %d x %d' % (_h[0], _w[0], _h[-1], _w[-1]))
+
+            h_w = np.genfromtxt(stats, int, delimiter=',')
+            _h = h_w[:, 0]
+            _w = h_w[:, 1]
+            avg_h = int(np.sum(np.array(stats_count) * _h) / np.sum(np.array(stats_count)))
+            avg_w = int(np.sum(np.array(stats_count) * _w) / np.sum(np.array(stats_count)))
+
+            print('avg h: %d, avg w: %d' % (avg_h, avg_w))
+
+        if names[i] == 'stats_frames':
+            stats = np.array(stats).astype(int)
+            print('min: %d, max: %d' % (stats.min(), stats.max()))
+            avg_frames = int(np.sum(np.array(stats_count) * stats) / np.sum(np.array(stats_count)))
+            print('avg frames: %d' % (avg_frames))
 
 
+        if save_fig:
+            s_path = os.path.join(tools.resources, '%s.jpg' % names[i])
+            save_figure(stats, stats_count, names[i], s_path)
+
+# aggregate_stats('train', save_fig=False)
+# stats_h_w Top 3 highest:
+# 720,1280   41603
+# 480,640   39936
+# 1080,1920   37213
+# min h: 56 x 224
+# max h: 2160 x 3840
+# min w: 144 x 82
+# max w: 2160 x 3840
+# avg h: 631, avg w: 944
+# stats_frames Top 3 highest:
+# 300   117664
+# 250   25483
+# 240   11245
+# min: 3, max: 600
+# avg frames: 265
+# stats_orientation Top 3 highest:
+# landscape   187562
+# portrait   24337
+# square   1909
+
+def standardize_dataset():
+    '''
+    h x w:  150 x 224
+    num_frames = 30, 60
+    save as avi
+
+
+    '''
+
+    pass
