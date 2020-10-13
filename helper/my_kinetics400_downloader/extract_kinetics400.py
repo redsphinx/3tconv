@@ -3,6 +3,7 @@ import numpy as np
 import os
 import time
 from utilities.utils import opt_mkdir, opt_makedirs
+from config import paths as PP
 import helper.my_kinetics400_downloader.tools as tools
 import helper.my_kinetics400_downloader.main as M
 from tqdm import tqdm
@@ -14,6 +15,8 @@ import cv2 as cv
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+import math
+import random
 
 
 
@@ -70,19 +73,7 @@ def single_video(video_path):
             stats = [video_id, height, width, frames, orientation]
             M.add_category_statistic(which, category, stats)
 
-            # print(stats)
-            # print('%s statistics:\n'
-            #       'height: %d\n'
-            #       'width: %d\n'
-            #       'frames: %d\n'
-            #       'orientation: %s' % (video_path, height, width, frames, orientation))
-
         else:
-            # delete the file
-            # =========================
-            # os.remove(video_path)
-            # =========================
-            # print('ONLY AUDIO: ', video_path)
 
             # add it to failed reason
             M.add_failed_reason(which, video_id, 'only_audio')
@@ -236,13 +227,178 @@ def aggregate_stats(which, save_fig=True):
 # portrait   24337
 # square   1909
 
-def standardize_dataset():
+
+def adjust_frame(np_image, h, w, c):
+    # resize to height of h
+    if np_image.shape[-1] > 1:
+        mode = 'RGB'
+    else:
+        mode = 'L'
+
+    image = Image.fromarray(np_image, mode=mode)
+    or_w, or_h = image.size
+    new_w = int(h * or_w / or_h)
+    image = image.resize((new_w, h), resample=Image.BICUBIC) # w, h
+
+    if new_w > w:
+        delta_w = (new_w - w) // 2
+        delta_w_2 = w + delta_w
+        image = image.crop((delta_w, 0, delta_w_2, h))  # l, u, r, d
+    elif new_w < w:
+        delta_w = (w - new_w) // 2
+        image = np.array(image)
+        pixel_mean = np.mean(np.mean(image, axis=0), axis=0)
+        pixel_mean = np.array(pixel_mean, dtype=int)
+        canvas = np.ones(shape=(h, w, c), dtype=np.uint8)
+        canvas = canvas * pixel_mean
+        # paste it
+        canvas[:, delta_w:new_w+delta_w, :] = image
+        image = canvas
+
+    image = np.array(image, dtype=np.uint8)
+    assert image.shape == (h, w, c)
+
+    return image
+
+
+
+def standardize_single_video(video_path, height, width, frames, channels=3):
+    which = video_path.split('/')[5]
+    category = video_path.split('/')[6]
+    video_name = video_path.split('/')[-1].split('.')[0]
+
+    video = skvid.vread(video_path)  # (frames, height, width, channels)
+
+    # choose frames
+    num_frames = video.shape[0]
+
+    if num_frames < frames:
+        missing_frames = frames - num_frames
+        copy_number_times = math.ceil(missing_frames / num_frames)
+
+        new_num_frames = num_frames
+        frames_to_copy = list(np.arange(0, num_frames))
+
+        while new_num_frames < frames:
+
+            if copy_number_times == 1:
+                extra_frames = list(np.arange(0, missing_frames))
+            else:
+                extra_frames = list(np.arange(0, num_frames))
+
+            frames_to_copy.extend(extra_frames)
+            frames_to_copy.sort()
+            new_num_frames = len(frames_to_copy)
+
+            missing_frames = frames - new_num_frames
+            if missing_frames > 0:
+                copy_number_times = math.ceil(frames / missing_frames)
+            else:
+                assert len(frames_to_copy) == frames
+
+    elif num_frames > frames:
+
+        if num_frames / frames > 2:
+            interval = math.floor(num_frames / frames)
+            frames_to_copy = list(np.arange(0, num_frames, interval))
+
+            copied = len(frames_to_copy)
+
+            if copied < frames:
+                # add random frames not previously chosen
+                diff = frames - copied
+                bag = list(set(list(np.arange(0, num_frames))) - set(frames_to_copy))
+                random_indices = random.sample(bag, k=diff)
+                frames_to_copy.extend(random_indices)
+                assert len(frames_to_copy) == frames
+
+            elif len(frames_to_copy) > frames:
+                # remove random indices
+                diff = copied - frames
+                random_indices = random.sample(frames_to_copy, k=diff)
+                frames_to_copy = list(set(frames_to_copy) - set(random_indices))
+                assert len(frames_to_copy) == frames
+
+            else:
+                assert len(frames_to_copy) == frames
+
+        else:
+            frames_to_remove = [n for n in range(0, num_frames, int(math.ceil(num_frames / (num_frames - frames))))]
+            leftover = num_frames - len(frames_to_remove)
+
+            if leftover < frames:
+                random_indices = random.sample(frames_to_remove, k=(frames - leftover))
+                for n in random_indices:
+                    frames_to_remove.remove(n)
+
+                assert num_frames - len(frames_to_remove) == frames
+
+            elif leftover > frames:
+
+                to_add = leftover - frames
+
+                if to_add == 1:
+                    frames_to_remove.append(frames_to_remove[-1]-1)
+                else:
+                    selection_list = [i for i in range(num_frames)]
+                    tmp = []
+                    ind = 0
+                    while len(tmp) != num_frames:
+                        tmp.append(selection_list.pop(ind))
+                        if ind == 0:
+                            ind = -1
+                        else:
+                            ind = 0
+
+                    for i in range(len(tmp)):
+                        if tmp[i] not in frames_to_remove:
+                            selection_list.append(tmp[i])
+
+                    for a_t in range(to_add):
+                        frames_to_remove.append(selection_list[a_t])
+
+            frames_to_remove.sort()
+
+            frames_to_copy = list(np.arange(0, num_frames))
+            for n in frames_to_remove:
+                frames_to_copy.remove(n)
+
+            assert len(frames_to_copy) == frames
+
+
+
+    else:
+        frames_to_copy = list(np.arange(0, num_frames))
+
+    frames_to_copy.sort()
+
+    # collect the relevant frames
+    video = video[frames_to_copy]
+    new_video = np.zeros(shape=(frames, height, width, channels), dtype=np.uint8)
+
+    for i in range(frames):
+        new_video[i] = adjust_frame(video[i], height, width, channels)
+
+    cat_path = os.path.join(PP.kinetics400_dataset_150_224, which, category)
+    opt_makedirs(cat_path)
+
+    save_path = os.path.join(cat_path, '%s.avi' % video_name)
+    skvid.vwrite(save_path, new_video)
+
+# 1LZ2bZsFEZM
+# vp = '/fast/gabras/kinetics400_downloader/dataset/train/eating_spaghetti/PcshBY2GhoQ.mp4'
+vp = '/fast/gabras/kinetics400_downloader/dataset/train/hoverboarding/1LZ2bZsFEZM.mp4'
+standardize_single_video(vp, height=150, width=224, frames=30, channels=3)
+
+
+def standardize_dataset(which, b, e, height, width, frames):
     '''
     h x w:  150 x 224
     num_frames = 30, 60
     save as avi
-
-
     '''
+
+    # main_path =
+
 
     pass

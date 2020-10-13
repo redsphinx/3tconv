@@ -36,9 +36,7 @@ gaff_meta = '/fast/gabras/gaff/metadata'
 gaff_samples = '/fast/gabras/gaff/samples'
 
 # Kinetics400
-kinetics400_train = '/fast/gabras/kinetics400_downloader/dataset/train'
-kinetics400_val = '/fast/gabras/kinetics400_downloader/dataset/valid'
-kinetics400_test = '/fast/gabras/kinetics400_downloader/dataset/test'
+kinetics400_dataset_150_224 = '/fast/gabras/kinetics400_downloader/dataset_150_224'
 
 
 
