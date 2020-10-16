@@ -275,9 +275,6 @@ def standardize_single_video(video_path, height, width, frames, channels=3):
 
     if not os.path.exists(save_path):
 
-        if video_path == '/fast/gabras/kinetics400_downloader/dataset/train/drop_kicking/7k7Lj3BR-CM.mp4':
-            print('HEREEE')
-
         video = skvid.vread(video_path)  # (frames, height, width, channels)
 
         # choose frames
@@ -490,14 +487,14 @@ def standardize_dataset(which, b, e, height, width, frames, parallel=False, num_
 
 
 # standardize_dataset('train', 10, 100, 150, 224, 30, parallel=False)
-# st = time.time()
-b = 40300   # broke
-e = 70300
-# standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)  # broke
-standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # broke
+st = time.time()
+b = 80300
+e = 90300
+standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)
+# standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
 
 
-# en = time.time()
-# tot = (en - st) / 60
-# print('standardized %d videos in %f minutes' % (e-b, tot))
+en = time.time()
+tot = (en - st) / 60
+print('standardized %d videos in %f minutes' % (e-b, tot))
 
