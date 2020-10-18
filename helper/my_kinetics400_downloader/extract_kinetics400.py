@@ -460,12 +460,22 @@ def get_videos(which):
     return all_videos
 
 
+def make_all_dirs(which):
+    path = os.path.join(tools.main_path, which)
+    cats = os.listdir(path)
+    for c in cats:
+        cat_path = os.path.join(path, c)
+        opt_makedirs(cat_path)
+
+
 def standardize_dataset(which, b, e, height, width, frames, parallel=False, num_processes=20):
     '''
     h x w:  150 x 224
     num_frames = 30, 60
     save as avi
     '''
+
+    make_all_dirs(which)
 
     all_videos = get_videos(which)
 
@@ -488,8 +498,8 @@ def standardize_dataset(which, b, e, height, width, frames, parallel=False, num_
 
 # standardize_dataset('train', 10, 100, 150, 224, 30, parallel=False)
 st = time.time()
-b = 80300
-e = 90300
+b = 100300
+e = 120300
 standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)
 # standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
 
