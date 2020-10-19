@@ -57,7 +57,8 @@ def rotate_grid(grid, degrees):
     # degree to radians
     rot_rad = degrees * np.pi / 180
 
-    # Clockwise, 2D rotation matrix
+    # Clockwise 2D rotation matrix
+    # row x column
     RotMatrix = np.array([[np.cos(rot_rad),  np.sin(rot_rad)],
                           [-np.sin(rot_rad), np.cos(rot_rad)]])
 
@@ -89,6 +90,16 @@ def make_sample(amplitude, phase, frequency, rotation=None):
     # im.save(save_path)
 
 
+def create_transformation_sequence(frames, delta_trafo):
+
+    '''
+    for each frame, accumulate the delta transforms
+
+    '''
+
+    pass
+
+
 def sample_base_image(seed, height, width):
     # phase, frequency, rotation
 
@@ -118,30 +129,72 @@ def generate_dataset(which, the_class, num_samples, height, width, frames, seed)
     #     sample horizontal and vertical direction, speed
     #     calculate deltas
     if the_class == 'translate':
-        pass
+        horizontal = 0
+        vertical = 0
+        while horizontal == 0 and vertical == 0:
+            horizontal = np.random.randint(-1, 2)
+            vertical = np.random.randint(-1, 2)
+
+        speed_per_frame = np.random.randint(1, 4) # move between 1 and 3 pixels
+
+        delta_trafo = np.array([[1, 0, horizontal * speed_per_frame],
+                                [0, 1, vertical * speed_per_frame]])
+
 
     # if class == rotate
     #     sample rotation center, direction, speed
     #     calculate deltas
     elif the_class == 'rotate':
-        pass
+        direction = np.random.randint(0, 2)
+        if direction == 0:
+            direction = -1
+        speed_per_frame = np.random.randint(1, 4) # move between 1 and 3 degrees
+        speed_in_rad = speed_per_frame * np.pi / 180
+        rot_rad = direction * speed_in_rad
+
+        center_x = np.random.randint(11, 22)
+        center_y = np.random.randint(11, 22)
+
+        delta_trafo = np.array([np.cos(rot_rad), np.sin(rot_rad), center_x*np.cos(rot_rad)-center_y*np.sin(rot_rad)],
+                               [-np.sin(rot_rad), np.cos(rot_rad), center_x*np.sin(rot_rad)+center_y*np.cos(rot_rad)])
+
 
     #  if class == scale
     #     sample scale center, direction, speed
     #     calculate deltas
     elif the_class == 'scale':
-        pass
+
+
+        center_x = np.random.randint(11, 22)
+        center_y = np.random.randint(11, 22)
+        direction = np.random.randint(0, 2)
+        if direction == 0:
+            direction = -1
+        speed_per_frame = np.random.randint(1, 4)/10 # between 1 and 3 ???
+
+        scaling = 1 + direction*speed_per_frame
+
+        delta_trafo = np.array([scaling, scaling, center_x*scaling-center_y*scaling],
+                               [scaling, scaling, center_x*scaling+center_y*scaling])
+
+    else:
+        delta_trafo = None
+
+    # TODO: for rotation and scaling when the center is not 0,0: apply translation to base_mesh??
+    transformation_sequence = create_transformation_sequence(frames, delta_trafo)
+
 
     # apply transformations only on base image
     # save sequence, transformations, seed
+    # np.einsum('ji, mni -> jmn', RotMatrix, np.dstack(grid))
     pass
 
 
 
 # pi = np.pi
 amplitude = 1 # idk what this does
-phase = 3.14 *2 # controls horizontal movement
-frequency = 0.05 # controls stripe density
+phase = 1.1 # controls horizontal movement
+frequency = 0.52 # controls stripe density
 rotation = 0
 
 # theta = pi / 4

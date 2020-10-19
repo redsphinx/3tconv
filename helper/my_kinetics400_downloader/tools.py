@@ -13,6 +13,8 @@ import json
 
 
 main_path = '/fast/gabras/kinetics400_downloader/dataset'
+main_path_standardized = '/fast/gabras/kinetics400_downloader/dataset_150_224'
+
 resources = '/fast/gabras/kinetics400_downloader/resources'
 # stats_path = '/fast/gabras/kinetics400_downloader/download_stats'
 fails = '/fast/gabras/kinetics400_downloader/fails'

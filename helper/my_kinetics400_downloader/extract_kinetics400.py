@@ -2,6 +2,7 @@
 from itertools import repeat
 import numpy as np
 import os
+import subprocess
 import time
 from utilities.utils import opt_mkdir, opt_makedirs
 from config import paths as PP
@@ -464,7 +465,8 @@ def make_all_dirs(which):
     path = os.path.join(tools.main_path, which)
     cats = os.listdir(path)
     for c in cats:
-        cat_path = os.path.join(path, c)
+        path2 = os.path.join(tools.main_path_standardized, which)
+        cat_path = os.path.join(path2, c)
         opt_makedirs(cat_path)
 
 
@@ -497,14 +499,30 @@ def standardize_dataset(which, b, e, height, width, frames, parallel=False, num_
 
 
 # standardize_dataset('train', 10, 100, 150, 224, 30, parallel=False)
-st = time.time()
-b = 100300
-e = 120300
-standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)
-# standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
+
+# st = time.time()
+# b = 170000
+# e = None
+# standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)
+# # standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
+# en = time.time()
+# tot = (en - st) / 60
+# print('standardized %d videos in %f minutes' % (e-b, tot))
 
 
-en = time.time()
-tot = (en - st) / 60
-print('standardized %d videos in %f minutes' % (e-b, tot))
+def get_amount_standardized(which):
+    # get total
+    all_videos = get_videos(which)
 
+    # get downloaded
+    path = os.path.join(tools.main_path_standardized, which)
+    folders = os.listdir(path)
+    downloaded = 0
+    for f in folders:
+        p = os.path.join(path, f)
+        downloaded = downloaded + len(os.listdir(p))
+
+
+    print('Downloaded for %s: %d out of %d' % (which, downloaded, len(all_videos)))
+
+# get_amount_standardized('train')
