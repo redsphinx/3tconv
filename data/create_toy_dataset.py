@@ -83,12 +83,25 @@ def make_sample(amplitude, phase, frequency, rotation=None):
     # im.save(save_path)
 
 
-def create_transformation_sequence(frames, delta_trafo):
+def create_transformation_sequence(the_class, frames, delta_trafo):
+    og_trafo = delta_trafo
+    transformation_sequence = np.zeros((frames-1, 2, 3))
 
-    transformation_sequence = np.zeros((frames, 2, 3))
+    if the_class == 'translate':
+        for i in range(1, frames):
+            transformation_sequence[i-1] = i * delta_trafo
+            transformation_sequence[i-1, :, 0:2] = np.diag([1, 1])
+    elif the_class == 'rotate':
+        for i in range(1, frames):
+            transformation_sequence[i-1] = i * delta_trafo
+            transformation_sequence[i-1, :, 0:2]
+
+
+    elif the_class == 'scale':
+        pass
 
     for i in range(1, frames):
-        transformation_sequence[i] = i * delta_trafo
+        transformation_sequence[i-1] = i * delta_trafo
 
     return transformation_sequence
 
@@ -113,11 +126,12 @@ def sample_base_image(seed, height, width):
     return [x, y], frequency, rotation, phase
 
 
-def generate_single_sequence(which, the_class, num_samples, height, width, frames, seed):
+def generate_single_sequence(the_class, height, width, frames, seed):
     amplitude = 1
     # make base image -> sample phase, frequency and rotation
     # apply the sin wave later
     [x, y], frequency, rotation, phase = sample_base_image(seed, height, width)
+    transformation_sequence = np.zeros((frames-1, 2, 3))
 
     if the_class == 'translate':
         horizontal = 0
@@ -131,23 +145,34 @@ def generate_single_sequence(which, the_class, num_samples, height, width, frame
         delta_trafo = np.array([[1, 0, horizontal * speed_per_frame],
                                 [0, 1, vertical * speed_per_frame]])
 
+        for i in range(1, frames):
+            transformation_sequence[i-1] = np.array([[1, 0, i * horizontal * speed_per_frame],
+                                                     [0, 1, i * vertical * speed_per_frame]])
+        
         info = 'horizontal: %d, vertical: %d, speed: %d' % (horizontal, vertical, speed_per_frame)
 
     elif the_class == 'rotate':
         direction = np.random.randint(0, 2)
         if direction == 0:
             direction = -1
-        speed_per_frame = np.random.randint(1, 4) # move between 1 and 3 degrees
-        speed_in_rad = speed_per_frame * np.pi / 180
-        rot_rad = direction * speed_in_rad
 
+        speed_per_frame = np.random.randint(1, 4) # move between 1 and 3 degrees    
+        def rot_rad(ind=1):
+            speed_in_rad = ind * speed_per_frame * np.pi / 180
+            rad = direction * speed_in_rad
+            return rad
+            
         center_x = np.random.randint(11, 22)
         center_y = np.random.randint(11, 22)
 
-        delta_trafo = np.array([np.cos(rot_rad), np.sin(rot_rad), center_x*np.cos(rot_rad)-center_y*np.sin(rot_rad)],
-                               [-np.sin(rot_rad), np.cos(rot_rad), center_x*np.sin(rot_rad)+center_y*np.cos(rot_rad)])
+        delta_trafo = np.array([np.cos(rot_rad()), np.sin(rot_rad()), center_x*np.cos(rot_rad())-center_y*np.sin(rot_rad())],
+                               [-np.sin(rot_rad()), np.cos(rot_rad()), center_x*np.sin(rot_rad())+center_y*np.cos(rot_rad())])
 
-        # apply translation to base mesh for off-center rotation
+        for i in range(1, frames):
+            transformation_sequence[i-1] = np.array([np.cos(rot_rad(i)), np.sin(rot_rad(i)), center_x*np.cos(rot_rad(i))-center_y*np.sin(rot_rad(i))],
+                                                    [-np.sin(rot_rad(i)), np.cos(rot_rad(i)), center_x*np.sin(rot_rad(i))+center_y*np.cos(rot_rad(i))])
+
+            # apply translation to base mesh for off-center rotation
         translation_trafo = np.array([[1, 0, center_x * speed_per_frame],
                                       [0, 1, center_y * speed_per_frame]])
 
@@ -171,6 +196,11 @@ def generate_single_sequence(which, the_class, num_samples, height, width, frame
         delta_trafo = np.array([scaling, scaling, center_x*scaling-center_y*scaling],
                                [scaling, scaling, center_x*scaling+center_y*scaling])
 
+        for i in range(1, frames):
+            transformation_sequence[i-1] = np.array([np.power(scaling, i), np.power(scaling, i), center_x*np.power(scaling, i)-center_y*np.power(scaling, i)],
+                                                    [np.power(scaling, i), np.power(scaling, i), center_x*np.power(scaling, i)+center_y*np.power(scaling, i)])
+
+
         # apply translation to base mesh for off-center scaling
         translation_trafo = np.array([[1, 0, center_x * speed_per_frame],
                                       [0, 1, center_y * speed_per_frame]])
@@ -179,10 +209,7 @@ def generate_single_sequence(which, the_class, num_samples, height, width, frame
 
         info = 'direction: %d, center: (%d, %d), speed: %d' % (direction, center_x, center_y, speed_per_frame)
 
-    else:
-        delta_trafo = None
-
-    transformation_sequence = create_transformation_sequence(frames, delta_trafo)
+    # transformation_sequence = create_transformation_sequence(the_class, frames, delta_trafo)
 
     # TODO: channels
     all_frames_in_sequence = np.zeros((frames, height, width), dtype=np.uint8)
@@ -223,6 +250,13 @@ def generate_single_sequence(which, the_class, num_samples, height, width, frame
 # make_sample(amplitude=amplitude, phase=phase, frequency=frequency, rotation=None)
 
 
+the_class = 'translate'
+# the_class = 'rotate'
+# the_class = 'scale'
+height, width = 32, 32
+frames = 10
+seed = 420
+generate_single_sequence(the_class, height, width, frames, seed)
 
 '''
 SEEDS
