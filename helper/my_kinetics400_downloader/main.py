@@ -151,7 +151,6 @@ def crosscheck_lists(which):
 
 
 
-
 def get_video_with_error(which, error_name):
     file_path = os.path.join(tools.failed_reasons, '%s.txt' % which)
 
@@ -190,9 +189,6 @@ def clean_up_failed_reasons_list(which):
 
 
     print('asdf')
-
-    pass
-
 
 
 
@@ -538,8 +534,8 @@ def run_parallel(mode, which, start, end, num_processes=10):
 
 def run_parallel_and_wait(which):
 
-    mode = 'og_list'
-    # mode = 'only_failed'
+    # mode = 'og_list'
+    mode = 'only_failed'
 
     if mode == 'only_failed':
         num_to_download = len(tools.get_failed_list(which))
@@ -591,12 +587,12 @@ def run_parallel_and_wait(which):
 
 
 # attempting download of failed ones
-# wch = 'train'
-# clean_up_partials(wch)
-# crosscheck_lists(wch)
-# tools.download_progress_per_class(wch)
+wch = 'valid'
+clean_up_partials(wch)
+crosscheck_lists(wch)
+tools.download_progress_per_class(wch)
 
-# run_parallel_and_wait(wch)
+run_parallel_and_wait(wch)
 # run('og_list', wch, None, None)
 
 # train: 246534
