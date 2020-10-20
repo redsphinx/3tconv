@@ -65,13 +65,6 @@ def rotate_grid(grid, degrees):
     return np.einsum('ji, mni -> jmn', RotMatrix, np.dstack(grid))
 
 
-def zooming(scale):
-    pass
-
-
-
-
-
 def make_sample(amplitude, phase, frequency, rotation=None):
     image = generate_sin_wave(amplitude, phase * np.pi, frequency * np.pi, rotation)
 
@@ -92,12 +85,12 @@ def make_sample(amplitude, phase, frequency, rotation=None):
 
 def create_transformation_sequence(frames, delta_trafo):
 
-    '''
-    for each frame, accumulate the delta transforms
+    transformation_sequence = np.zeros((frames, 2, 3))
 
-    '''
+    for i in range(1, frames):
+        transformation_sequence[i] = i * delta_trafo
 
-    pass
+    return transformation_sequence
 
 
 def sample_base_image(seed, height, width):
@@ -114,20 +107,18 @@ def sample_base_image(seed, height, width):
     [x, y] = rotate_grid([x, y], rotation)
 
     # result = amplitude * np.cos(frequency[0] * x  + frequency[1] * y + phase)
+    # amplitude = 1
+    # base_mesh = amplitude * np.cos(frequency * x + frequency * y + phase)
+
+    return [x, y], frequency, rotation, phase
+
+
+def generate_single_sequence(which, the_class, num_samples, height, width, frames, seed):
     amplitude = 1
-    base_mesh = amplitude * np.cos(frequency * x + frequency * y + phase)
-
-    return base_mesh
-
-
-def generate_dataset(which, the_class, num_samples, height, width, frames, seed):
-
     # make base image -> sample phase, frequency and rotation
-    base_mesh = sample_base_image(seed, height, width)
+    # apply the sin wave later
+    [x, y], frequency, rotation, phase = sample_base_image(seed, height, width)
 
-    # if class == translate
-    #     sample horizontal and vertical direction, speed
-    #     calculate deltas
     if the_class == 'translate':
         horizontal = 0
         vertical = 0
@@ -140,10 +131,8 @@ def generate_dataset(which, the_class, num_samples, height, width, frames, seed)
         delta_trafo = np.array([[1, 0, horizontal * speed_per_frame],
                                 [0, 1, vertical * speed_per_frame]])
 
+        info = 'horizontal: %d, vertical: %d, speed: %d' % (horizontal, vertical, speed_per_frame)
 
-    # if class == rotate
-    #     sample rotation center, direction, speed
-    #     calculate deltas
     elif the_class == 'rotate':
         direction = np.random.randint(0, 2)
         if direction == 0:
@@ -158,10 +147,15 @@ def generate_dataset(which, the_class, num_samples, height, width, frames, seed)
         delta_trafo = np.array([np.cos(rot_rad), np.sin(rot_rad), center_x*np.cos(rot_rad)-center_y*np.sin(rot_rad)],
                                [-np.sin(rot_rad), np.cos(rot_rad), center_x*np.sin(rot_rad)+center_y*np.cos(rot_rad)])
 
+        # apply translation to base mesh for off-center rotation
+        translation_trafo = np.array([[1, 0, center_x * speed_per_frame],
+                                      [0, 1, center_y * speed_per_frame]])
 
-    #  if class == scale
-    #     sample scale center, direction, speed
-    #     calculate deltas
+        [x, y] = np.einsum('ji, mni -> jmn', translation_trafo, np.dstack([x, y]))
+
+        info = 'direction: %d, center: (%d, %d), speed: %d' % (direction, center_x, center_y, speed_per_frame)
+
+
     elif the_class == 'scale':
 
 
@@ -177,33 +171,56 @@ def generate_dataset(which, the_class, num_samples, height, width, frames, seed)
         delta_trafo = np.array([scaling, scaling, center_x*scaling-center_y*scaling],
                                [scaling, scaling, center_x*scaling+center_y*scaling])
 
+        # apply translation to base mesh for off-center scaling
+        translation_trafo = np.array([[1, 0, center_x * speed_per_frame],
+                                      [0, 1, center_y * speed_per_frame]])
+
+        [x, y] = np.einsum('ji, mni -> jmn', translation_trafo, np.dstack([x, y]))
+
+        info = 'direction: %d, center: (%d, %d), speed: %d' % (direction, center_x, center_y, speed_per_frame)
+
     else:
         delta_trafo = None
 
-    # TODO: for rotation and scaling when the center is not 0,0: apply translation to base_mesh??
     transformation_sequence = create_transformation_sequence(frames, delta_trafo)
 
+    # TODO: channels
+    all_frames_in_sequence = np.zeros((frames, height, width), dtype=np.uint8)
+    # add the base frame
+    frame = amplitude * np.cos(frequency * x + frequency * y + phase)
+    all_frames_in_sequence[0] = frame
 
-    # apply transformations only on base image
-    # save sequence, transformations, seed
-    # np.einsum('ji, mni -> jmn', RotMatrix, np.dstack(grid))
-    pass
+    for f in range(frames-1):
+        # apply delta transformation
+        mesh = np.einsum('ji, mni -> jmn', transformation_sequence[f], np.dstack([x, y]))
+        # fill mesh with sin wave
+        frame = amplitude * np.cos(frequency * mesh[0] + frequency * mesh[1] + phase)
+        all_frames_in_sequence[f] = frame
+
+    # save
+    save_path = os.path.join(PP.gaff_samples, "%s_%s_%s_%s.avi" % (the_class, str(rotation), str(phase), str(frequency)))
+    skvid.vwrite(save_path, all_frames_in_sequence)
+    print('class: %s\n'
+          'base rotation, phase, frquency: %d, %f, %f\n'
+          'transformation: %s' % (the_class, rotation, phase, frequency, info))
+    # TODO: save metadata in file
 
 
 
-# pi = np.pi
-amplitude = 1 # idk what this does
-phase = 1.1 # controls horizontal movement
-frequency = 0.52 # controls stripe density
-rotation = 0
 
-# theta = pi / 4
-# frequency = [np.cos(theta), np.sin(theta)]
-# frequency = np.sin(theta)
-# frequency = theta
-# make_sample(amplitude=1, phase=pi/2, frequency=frequency)
-
-make_sample(amplitude=amplitude, phase=phase, frequency=frequency, rotation=None)
+# # pi = np.pi
+# amplitude = 1 # idk what this does
+# phase = 1.1 # controls horizontal movement
+# frequency = 0.52 # controls stripe density
+# rotation = 0
+#
+# # theta = pi / 4
+# # frequency = [np.cos(theta), np.sin(theta)]
+# # frequency = np.sin(theta)
+# # frequency = theta
+# # make_sample(amplitude=1, phase=pi/2, frequency=frequency)
+#
+# make_sample(amplitude=amplitude, phase=phase, frequency=frequency, rotation=None)
 
 
 
