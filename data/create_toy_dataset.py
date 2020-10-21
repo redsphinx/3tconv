@@ -83,72 +83,66 @@ def make_sample(amplitude, phase, frequency, rotation=None):
     # im.save(save_path)
 
 
-def create_transformation_sequence(the_class, frames, delta_trafo):
-    og_trafo = delta_trafo
-    transformation_sequence = np.zeros((frames-1, 2, 3))
-
-    if the_class == 'translate':
-        for i in range(1, frames):
-            transformation_sequence[i-1] = i * delta_trafo
-            transformation_sequence[i-1, :, 0:2] = np.diag([1, 1])
-    elif the_class == 'rotate':
-        for i in range(1, frames):
-            transformation_sequence[i-1] = i * delta_trafo
-            transformation_sequence[i-1, :, 0:2]
-
-
-    elif the_class == 'scale':
-        pass
-
-    for i in range(1, frames):
-        transformation_sequence[i-1] = i * delta_trafo
-
-    return transformation_sequence
-
-
-def sample_base_image(seed, height, width):
-    # phase, frequency, rotation
-
-    np.random.seed(seed)
-    rotation = np.random.randint(0, 360)
-    frequency = np.random.randint(5, 80) / 100  # TODO: how to deal with going out of bounds?
-    phase = np.random.randint(0, 10) / 10 * np.pi
-
+def sample_base_image(seed, height, width, randomize):
+    if randomize:
+        np.random.seed(seed)
+        rotation = np.random.randint(0, 360)
+        frequency = np.random.randint(5, 80) / 100  # TODO: how to deal with going out of bounds?
+        phase = np.random.randint(0, 10) / 10 * np.pi
+    else:
+        rotation = -45
+        frequency = 0.5
+        phase = np.pi
 
     radius = (int(width / 2.0), int(height / 2.0))
     [x, y] = np.meshgrid(range(-radius[0], radius[0] + 1), range(-radius[1], radius[1] + 1))
     [x, y] = rotate_grid([x, y], rotation)
 
-    # result = amplitude * np.cos(frequency[0] * x  + frequency[1] * y + phase)
-    # amplitude = 1
-    # base_mesh = amplitude * np.cos(frequency * x + frequency * y + phase)
-
     return [x, y], frequency, rotation, phase
 
 
-def generate_single_sequence(the_class, height, width, frames, seed):
+def fix_shape(np_arr, desired_shape):
+    if np_arr.shape != desired_shape:
+        np_arr = np_arr[0:desired_shape[0], 0:desired_shape[1]]
+
+    return np_arr
+
+
+
+def generate_single_sequence(the_class, height, width, frames, seed, randomize=True):
     amplitude = 1
     # make base image -> sample phase, frequency and rotation
     # apply the sin wave later
-    [x, y], frequency, rotation, phase = sample_base_image(seed, height, width)
+    [x, y], frequency, rotation, phase = sample_base_image(seed, height, width, randomize)
+
+    # x = fix_shape(x, (height, width))
+    # y = fix_shape(y, (height, width))
+
     transformation_sequence = np.zeros((frames-1, 2, 3))
+    # transformation_sequence = np.zeros((frames-1, 3, 2))
 
     if the_class == 'translate':
         horizontal = 0
         vertical = 0
-        while horizontal == 0 and vertical == 0:
-            horizontal = np.random.randint(-1, 2)
-            vertical = np.random.randint(-1, 2)
+        if randomize:
+            while horizontal == 0 and vertical == 0:
+                horizontal = np.random.randint(-1, 2) # -1 = right, 1 = left
+                vertical = np.random.randint(-1, 2)  # FIX: doesn't work
 
-        speed_per_frame = np.random.randint(1, 4) # move between 1 and 3 pixels
-
-        delta_trafo = np.array([[1, 0, horizontal * speed_per_frame],
-                                [0, 1, vertical * speed_per_frame]])
+            speed_per_frame = np.random.randint(1, 4) # move between 1 and 3 pixels
+        else:
+            horizontal = 0
+            vertical = -1 # FIX: doesn't work
+            speed_per_frame = 1
 
         for i in range(1, frames):
             transformation_sequence[i-1] = np.array([[1, 0, i * horizontal * speed_per_frame],
                                                      [0, 1, i * vertical * speed_per_frame]])
-        
+            # transformation_sequence[i-1] = np.array([[1, 0],
+            #                                          [0, 1],
+            #                                          [i * horizontal * speed_per_frame, i * vertical * speed_per_frame]
+            #                                         ])
+
         info = 'horizontal: %d, vertical: %d, speed: %d' % (horizontal, vertical, speed_per_frame)
 
     elif the_class == 'rotate':
@@ -182,8 +176,6 @@ def generate_single_sequence(the_class, height, width, frames, seed):
 
 
     elif the_class == 'scale':
-
-
         center_x = np.random.randint(11, 22)
         center_y = np.random.randint(11, 22)
         direction = np.random.randint(0, 2)
@@ -211,21 +203,37 @@ def generate_single_sequence(the_class, height, width, frames, seed):
 
     # transformation_sequence = create_transformation_sequence(the_class, frames, delta_trafo)
 
-    # TODO: channels
-    all_frames_in_sequence = np.zeros((frames, height, width), dtype=np.uint8)
+    x_h = x.shape[0]
+    x_w = x.shape[1]
+
+    all_frames_in_sequence = np.zeros((frames, x_h, x_w), dtype=np.uint8)
     # add the base frame
     frame = amplitude * np.cos(frequency * x + frequency * y + phase)
     all_frames_in_sequence[0] = frame
 
     for f in range(frames-1):
         # apply delta transformation
-        mesh = np.einsum('ji, mni -> jmn', transformation_sequence[f], np.dstack([x, y]))
+        transformation = np.eye(3)
+        transformation[0:2] = transformation_sequence[f]
+
+        # mesh = np.einsum('ji, mni -> jmn', transformation_sequence[f], np.dstack([x, y]))
+        # mesh = np.einsum('ij, mni -> imn', transformation_sequence[f], np.dstack([x, y]))
+        # mesh = np.einsum('ji, mni -> jmn', transformation_sequence[f], np.dstack([x, y, np.ones(x.shape)]))
+        mesh = np.einsum('ji, mni -> jmn', transformation, np.dstack([x, y, np.ones(x.shape)]))
         # fill mesh with sin wave
         frame = amplitude * np.cos(frequency * mesh[0] + frequency * mesh[1] + phase)
+        frame = U.normalize_between(frame, frame.min(), frame.max(), 0, 255)
+        # save as jpg
+        frame = np.asarray(frame, dtype=np.uint8)
+        # im = Image.fromarray(frame, mode='L')
+        # savpath = os.path.join(PP.gaff_samples, 'fr_%d.jpg' % f)
+        # im.save(savpath)
+
         all_frames_in_sequence[f] = frame
 
-    # save
-    save_path = os.path.join(PP.gaff_samples, "%s_%s_%s_%s.avi" % (the_class, str(rotation), str(phase), str(frequency)))
+    # save as avi
+    # save_path = os.path.join(PP.gaff_samples, "%s_%s_%s_%s.avi" % (the_class, str(rotation), str(phase), str(frequency)))
+    save_path = os.path.join(PP.gaff_samples, "%s_%d.avi" % (the_class, np.random.randint(1000, 9999)))
     skvid.vwrite(save_path, all_frames_in_sequence)
     print('class: %s\n'
           'base rotation, phase, frquency: %d, %f, %f\n'
@@ -247,16 +255,16 @@ def generate_single_sequence(the_class, height, width, frames, seed):
 # # frequency = theta
 # # make_sample(amplitude=1, phase=pi/2, frequency=frequency)
 #
-# make_sample(amplitude=amplitude, phase=phase, frequency=frequency, rotation=None)
+# make_sample(amplitude=amplitude, phase=phase, frequency=frequency, rotation=10)
 
 
 the_class = 'translate'
 # the_class = 'rotate'
 # the_class = 'scale'
 height, width = 32, 32
-frames = 10
+frames = 30
 seed = 420
-generate_single_sequence(the_class, height, width, frames, seed)
+generate_single_sequence(the_class, height, width, frames, seed, randomize=False)
 
 '''
 SEEDS
