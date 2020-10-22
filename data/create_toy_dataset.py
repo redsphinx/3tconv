@@ -90,13 +90,14 @@ def sample_base_image(seed, height, width, randomize):
         frequency = np.random.randint(5, 80) / 100  # TODO: how to deal with going out of bounds?
         phase = np.random.randint(0, 10) / 10 * np.pi
     else:
-        rotation = -45
+        # rotation = 225
+        rotation = 45
         frequency = 0.5
         phase = np.pi
 
     radius = (int(width / 2.0), int(height / 2.0))
     [x, y] = np.meshgrid(range(-radius[0], radius[0] + 1), range(-radius[1], radius[1] + 1))
-    [x, y] = rotate_grid([x, y], rotation)
+    # [x, y] = rotate_grid([x, y], rotation)
 
     return [x, y], frequency, rotation, phase
 
@@ -127,21 +128,24 @@ def generate_single_sequence(the_class, height, width, frames, seed, randomize=T
         if randomize:
             while horizontal == 0 and vertical == 0:
                 horizontal = np.random.randint(-1, 2) # -1 = right, 1 = left
-                vertical = np.random.randint(-1, 2)  # FIX: doesn't work
+                vertical = np.random.randint(-1, 2)
 
             speed_per_frame = np.random.randint(1, 4) # move between 1 and 3 pixels
+            rotation = np.random.randint(0, 360)
         else:
-            horizontal = 0
-            vertical = -1 # FIX: doesn't work
+            horizontal = 1
+            vertical = 0  # 1 = up, -1 = down
             speed_per_frame = 1
+            rotation = 0
+
+        rot_rad = rotation * np.pi / 180
 
         for i in range(1, frames):
             transformation_sequence[i-1] = np.array([[1, 0, i * horizontal * speed_per_frame],
                                                      [0, 1, i * vertical * speed_per_frame]])
-            # transformation_sequence[i-1] = np.array([[1, 0],
-            #                                          [0, 1],
-            #                                          [i * horizontal * speed_per_frame, i * vertical * speed_per_frame]
-            #                                         ])
+
+            # transformation_sequence[i-1] = np.array([[np.cos(rot_rad),  np.sin(rot_rad), i * horizontal * speed_per_frame],
+            #                                          [-np.sin(rot_rad), np.cos(rot_rad), i * vertical * speed_per_frame]])
 
         info = 'horizontal: %d, vertical: %d, speed: %d' % (horizontal, vertical, speed_per_frame)
 
@@ -237,6 +241,12 @@ def generate_single_sequence(the_class, height, width, frames, seed, randomize=T
         mesh = np.einsum('ji, mni -> jmn', transformation, np.dstack([x, y, np.ones(x.shape)]))
         # fill mesh with sin wave
         frame = amplitude * np.cos(frequency * mesh[0] + frequency * mesh[1] + phase)
+
+        # testing the rotation after
+        
+
+
+
         frame = U.normalize_between(frame, frame.min(), frame.max(), 0, 255)
         # save as jpg
         frame = np.asarray(frame, dtype=np.uint8)
@@ -273,9 +283,9 @@ def generate_single_sequence(the_class, height, width, frames, seed, randomize=T
 # make_sample(amplitude=amplitude, phase=phase, frequency=frequency, rotation=10)
 
 
-# the_class = 'translate'
+the_class = 'translate'
 # the_class = 'rotate'
-the_class = 'scale'
+# the_class = 'scale'
 height, width = 32, 32
 frames = 30
 seed = 420
