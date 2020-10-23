@@ -81,6 +81,7 @@ def single_video(video_path):
             M.add_failed_reason(which, video_id, 'only_audio')
 
 
+# create a file stats.txt in each category folder
 def all_videos(which, start, end, parallel=False, num_processes=10):
     all_video_paths = tools.get_all_video_paths(which)
 
@@ -100,6 +101,9 @@ def all_videos(which, start, end, parallel=False, num_processes=10):
     else:
         for p in all_video_paths:
             single_video(p)
+
+
+# all_videos('valid', 0, None, parallel=True)
 
 
 def aggregate_stats(which, save_fig=True):
@@ -498,16 +502,22 @@ def standardize_dataset(which, b, e, height, width, frames, parallel=False, num_
         pool.starmap(standardize_single_video, zip(all_videos, repeat(height), repeat(width), repeat(frames)))
 
 
-# standardize_dataset('train', 10, 100, 150, 224, 30, parallel=False)
 
-# st = time.time()
-# b = 170000
-# e = None
+st = time.time()
+b = 10
+e = None
+standardize_dataset('valid', b, e, 150, 224, 30, parallel=True, num_processes=30)
+# standardize_dataset('valid', b, e, 150, 224, 30, parallel=False)  # for debugging
+
 # standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)
-# # standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
-# en = time.time()
-# tot = (en - st) / 60
-# print('standardized %d videos in %f minutes' % (e-b, tot))
+# standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
+en = time.time()
+tot = (en - st) / 60
+if e is not None:
+    print('standardized %d videos in %f minutes' % (e-b, tot))
+else:
+    print('standardized videos in %f minutes' % (tot))
+
 
 
 def get_amount_standardized(which):
@@ -525,4 +535,4 @@ def get_amount_standardized(which):
 
     print('Downloaded for %s: %d out of %d' % (which, downloaded, len(all_videos)))
 
-# get_amount_standardized('train')
+# get_amount_standardized('valid')

@@ -453,7 +453,7 @@ def get_catstat_list(which, category):
 
 
 def get_all_video_paths(which):
-    all_videos_path = os.path.join(resources, 'all_video_paths.txt')
+    all_videos_path = os.path.join(resources, 'all_video_paths_%s.txt' % which)
 
     if not os.path.exists(all_videos_path):
         all_paths = []
@@ -475,6 +475,26 @@ def get_all_video_paths(which):
 
     else:
         return list(np.genfromtxt(all_videos_path, str))
+
+
+# def remove_empty_folders():
+#     folders = os.listdir(main_path)
+#     folders.sort()
+#
+#     cnt = 0
+#     for f in folders:
+#         if f not in ['train', 'valid', 'val', 'test']:
+#             cnt = cnt + 1
+#             the_path = os.path.join(main_path, f)
+#             # print('%d %s' % (cnt, the_path))
+#
+#             # ======================================
+#             # ======================================
+#             # command = 'rm -rf %s' % the_path
+#             # subprocess.call(command, shell=True)
+#             # ======================================
+#             # ======================================
+
 
 
 # alist = get_all_video_paths('train')
