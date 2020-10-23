@@ -503,20 +503,20 @@ def standardize_dataset(which, b, e, height, width, frames, parallel=False, num_
 
 
 
-st = time.time()
-b = 10
-e = None
-standardize_dataset('valid', b, e, 150, 224, 30, parallel=True, num_processes=30)
-# standardize_dataset('valid', b, e, 150, 224, 30, parallel=False)  # for debugging
-
-# standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)
-# standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
-en = time.time()
-tot = (en - st) / 60
-if e is not None:
-    print('standardized %d videos in %f minutes' % (e-b, tot))
-else:
-    print('standardized videos in %f minutes' % (tot))
+# st = time.time()
+# b = 10
+# e = None
+# standardize_dataset('valid', b, e, 150, 224, 30, parallel=True, num_processes=30)
+# # standardize_dataset('valid', b, e, 150, 224, 30, parallel=False)  # for debugging
+#
+# # standardize_dataset('train', b, e, 150, 224, 30, parallel=True, num_processes=30)
+# # standardize_dataset('train', b, e, 150, 224, 30, parallel=False)  # for debugging
+# en = time.time()
+# tot = (en - st) / 60
+# if e is not None:
+#     print('standardized %d videos in %f minutes' % (e-b, tot))
+# else:
+#     print('standardized videos in %f minutes' % (tot))
 
 
 
@@ -535,4 +535,6 @@ def get_amount_standardized(which):
 
     print('Downloaded for %s: %d out of %d' % (which, downloaded, len(all_videos)))
 
-# get_amount_standardized('valid')
+while True:
+    get_amount_standardized('valid')
+    time.sleep(300)
