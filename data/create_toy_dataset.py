@@ -243,7 +243,7 @@ def generate_single_sequence(the_class, height, width, frames, seed, randomize=T
         frame = amplitude * np.cos(frequency * mesh[0] + frequency * mesh[1] + phase)
 
         # testing the rotation after
-        
+
 
 
 
