@@ -201,7 +201,11 @@ def make_download_list(mode, which):
         failed_list = set(tools.get_failed_list(which))
         success_list = set(tools.get_success_list(which))
         unable_list = set(tools.get_unable_list(which))
-        failed_reason_list = set(tools.get_failed_reasons_list(which)[:,0])
+        failed_reason_list = tools.get_failed_reasons_list(which)
+        if len(failed_reason_list) == 0:
+            failed_reason_list = set(failed_reason_list)
+        else:
+            failed_reason_list = set(failed_reason_list[:,0])
 
         download_list = list(total_list - failed_list - success_list - unable_list - failed_reason_list)
 
@@ -213,9 +217,13 @@ def make_download_list(mode, which):
 
 def download_videos(vid_id, which):
     video_format = 'mp4'
-    category = tools.get_category(which, vid_id)
 
-    save_folder_path = os.path.join(tools.main_path, which, category)
+    if which == 'test':
+        save_folder_path = os.path.join(tools.main_path, which)
+    else:
+        category = tools.get_category(which, vid_id)
+        save_folder_path = os.path.join(tools.main_path, which, category)
+
     opt_makedirs(save_folder_path)
     raw_video_path = os.path.join(save_folder_path, '%s_raw.mp4' % vid_id)
     slice_path = os.path.join(save_folder_path, '%s.mp4' % vid_id)
@@ -296,6 +304,7 @@ def download_videos(vid_id, which):
     del(stdout)
 
     return is_success, opt_reason
+
 
 
 def add_success(which, vid_id):
@@ -455,7 +464,6 @@ def run(mode, which, start, end):
 
 def single_run(video_id, mode, which):
     is_success, opt_reason = download_videos(video_id, which)
-
     code = 0
 
     if is_success:
@@ -483,7 +491,7 @@ def single_run(video_id, mode, which):
 
 def run_parallel(mode, which, start, end, num_processes=10):
     assert mode in ['only_failed', 'og_list']
-    assert which in ['train', 'valid']
+    assert which in ['train', 'valid', 'test']
 
     download_list = make_download_list(mode, which)
     download_list.sort()
@@ -534,8 +542,8 @@ def run_parallel(mode, which, start, end, num_processes=10):
 
 def run_parallel_and_wait(which):
 
-    # mode = 'og_list'
-    mode = 'only_failed'
+    mode = 'og_list'
+    # mode = 'only_failed'
 
     if mode == 'only_failed':
         num_to_download = len(tools.get_failed_list(which))
@@ -544,7 +552,7 @@ def run_parallel_and_wait(which):
 
     print(num_to_download)
 
-    num_processes = 100
+    num_processes = 50
     start = 0
 
     start_date = time.strftime("%b %d %Y %H:%M:%S")
@@ -586,14 +594,14 @@ def run_parallel_and_wait(which):
           % (start_date, end_date, mode, which))
 
 
-# # attempting download of failed ones
-# wch = 'valid'
-# clean_up_partials(wch)
-# crosscheck_lists(wch)
+# attempting download of failed ones
+wch = 'test'
+clean_up_partials(wch)
+crosscheck_lists(wch)
 # tools.download_progress_per_class(wch)
-#
-# run_parallel_and_wait(wch)
-# # run('og_list', wch, None, None)
+
+run_parallel_and_wait(wch)
+# run('og_list', wch, None, None)
 
 # train: 246534
 # valid: 19906

@@ -7,7 +7,7 @@ import subprocess
 from filelock import FileLock
 import numpy as np
 import os
-from utilities.utils import opt_mkdir
+from utilities.utils import opt_mkdir, opt_makedirs
 import json
 # import helper.my_kinetics400_downloader.main as M
 
@@ -56,23 +56,36 @@ def get_all_video_ids(which):
 
 def get_downloaded_list(which, full_path=False):
     which_path = os.path.join(main_path, which)
-    folders = os.listdir(which_path)
     download_list = []
 
-    if full_path:
-        for _f in folders:
-            _f_path = os.path.join(which_path, _f)
-            vids = os.listdir(_f_path)
+    if which ==  'test':
+        vids = os.listdir(which_path)
+        if full_path:
             for _v in vids:
-                full_vid_path = os.path.join(_f_path, _v)
+                full_vid_path = os.path.join(which_path, _v)
                 download_list.append(full_vid_path)
-    else: # only ids
-        for _f in folders:
-            _f_path = os.path.join(which_path, _f)
-            vids = os.listdir(_f_path)
+        else:
             for _v in vids:
                 _v = _v.split('.')[0]
                 download_list.append(_v)
+    else:
+        folders = os.listdir(which_path)
+
+
+        if full_path:
+            for _f in folders:
+                _f_path = os.path.join(which_path, _f)
+                vids = os.listdir(_f_path)
+                for _v in vids:
+                    full_vid_path = os.path.join(_f_path, _v)
+                    download_list.append(full_vid_path)
+        else: # only ids
+            for _f in folders:
+                _f_path = os.path.join(which_path, _f)
+                vids = os.listdir(_f_path)
+                for _v in vids:
+                    _v = _v.split('.')[0]
+                    download_list.append(_v)
 
     return download_list
 
@@ -180,7 +193,11 @@ def get_failed_reasons_list(which):
 def get_success_list(which):
     success_path = os.path.join(successes, '%s.txt' % which)
     if os.path.exists(success_path):
-        return list(np.genfromtxt(success_path, str))
+        success_dl = np.genfromtxt(success_path, str)
+        if success_dl.shape == ():
+            return [str(success_dl)]
+        else:
+            return list(success_dl)
     else:
         with open(success_path, 'w') as my_file:
             print('created file: %s' % success_path)
@@ -476,6 +493,22 @@ def get_all_video_paths(which):
     else:
         return list(np.genfromtxt(all_videos_path, str))
 
+
+def make_all_dirs_in_split(which):
+    # copy the names from train
+    copy_from = os.path.join(main_path, 'train')
+    classes = os.listdir(copy_from)
+
+    classes.sort()
+
+    for i, v in enumerate(classes):
+        cat_path = os.path.join(main_path, which, v)
+        if not os.path.exists(cat_path):
+            # print(i, cat_path)
+            opt_makedirs(cat_path)
+
+
+# make_all_dirs_in_split('test')
 
 # def remove_empty_folders():
 #     folders = os.listdir(main_path)
