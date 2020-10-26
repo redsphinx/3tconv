@@ -552,7 +552,7 @@ def run_parallel_and_wait(which):
 
     print(num_to_download)
 
-    num_processes = 50
+    num_processes = 90
     start = 0
 
     start_date = time.strftime("%b %d %Y %H:%M:%S")
@@ -575,8 +575,9 @@ def run_parallel_and_wait(which):
             num_to_download = len(make_download_list(mode, which))
 
         if wait == 'oserror':
-            tools.download_progress_per_class(which)
-            print('Progress plot saved')
+            if which != 'test':
+                tools.download_progress_per_class(which)
+                print('Progress plot saved')
             print('OSError encountered, stopping process')
             return
 

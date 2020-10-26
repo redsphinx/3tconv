@@ -353,7 +353,7 @@ def get_total_per_category_list(which):
 
 
 def download_progress_per_class(which, save_plot=True, print_numbers=False):
-    assert which in ['test', 'train', 'valid']
+    assert which in ['train', 'valid']
 
     path = os.path.join(main_path, which)
     all_categories = os.listdir(path)
