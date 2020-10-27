@@ -552,7 +552,7 @@ def run_parallel_and_wait(which):
 
     print(num_to_download)
 
-    num_processes = 90
+    num_processes = 100
     start = 0
 
     start_date = time.strftime("%b %d %Y %H:%M:%S")

@@ -1,7 +1,7 @@
 # This is a toy dataset with 3 classes so that we can validate 3TConv
 import numpy as np
 import os
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 import tkinter as tk
 import time
 from datetime import datetime
@@ -69,37 +69,43 @@ def generate_dots(the_class, direction=None, speed=None, num_frames=30, window_s
         if speed is None:
             speed = 1
         full_side = window_side + speed * num_frames * 2
+        radius_dot_min = np.random.randint(1, 5)
+        radius_dot_max = radius_dot_min + 1
+
+        # num_dots = np.random.randint(50, 60)
+
+        # the smaller the dots, the faster the speed, the more dots you need
+        num_dots_low = speed * 1 / radius_dot_min * 30
+        num_dots_high = speed * 1 / radius_dot_min * 40
+        num_dots = np.random.randint(num_dots_low, num_dots_high)
 
     elif the_class == 'rotate':
-
         full_side = int(np.sqrt(2 * window_side**2)) + 1
+        
+        num_dots = np.random.randint(3, 8)
+        radius_dot_min = np.random.randint(1, 5)
+        radius_dot_max = radius_dot_min + 1
 
     elif the_class == 'scale':
         if speed is None:
             speed = 1
         full_side = window_side + speed * num_frames * 2
-
+        
+        num_dots = np.random.randint(10, 15)
+        if direction == 1:
+            radius_dot_min = 6
+            radius_dot_max = 9
+        else:
+            radius_dot_min = 7
+            radius_dot_max = 10
 
     else:
         print('error: class not recognized')
         return None
 
     # canvas
-    image = Image.new('RGB', (full_side, full_side))
+    image = Image.new('L', (full_side, full_side))
     canvas = ImageDraw.Draw(image)
-
-    # dots
-    num_dots = np.random.randint(5, 40)
-    radius_dot_min = 2
-    radius_dot_max = 5
-
-    if the_class == 'scale':
-        if direction == 1:
-            radius_dot_min = 1
-            radius_dot_max = 4
-        else:
-            radius_dot_min = 3
-            radius_dot_max = 6
 
     sample_x = np.random.randint(5, full_side-6, num_dots)
     sample_y = np.random.randint(5, full_side-6, num_dots)
@@ -115,27 +121,77 @@ def generate_dots(the_class, direction=None, speed=None, num_frames=30, window_s
     return image, canvas, full_side
 
 
+def apply_distortion(image, full_side):
+    angle = np.random.randint(5, 10)
+    direction = np.random.randint(0, 2)
+    if direction == 0:
+        direction = -1
+
+    retry = True
+    count = 0
+    image_rot = image.rotate(direction*angle, resample=Image.BILINEAR)
+
+    while retry:
+        frame = image_rot.crop((0+count, 0+count, full_side-count, full_side-count))
+
+        if frame.size != (0, 0):
+            retry = False
+        else:
+            count = count + 1
+
+    frame = frame.resize((full_side, full_side), Image.BILINEAR)
+
+    # add gaussian blur
+    if np.random.randint(0, 2):
+        frame = frame.filter(ImageFilter.GaussianBlur(radius=1))
+
+    return frame
+
+
 def generate_sequence_dots(the_class, num_frames, seed, window_side):
 
     if the_class == 'translate':
         direction_hor = np.random.randint(-1, 2)
         direction_ver = np.random.randint(-1, 2)
+
+        while direction_hor == 0 and direction_ver == 0:
+            direction_hor = np.random.randint(-1, 2)
+            direction_ver = np.random.randint(-1, 2)
+
         speed = np.random.randint(1, 4)
         direction = None
+        print('%s: horizontal: %d, vertical: %d, speed: %d' % (the_class, direction_hor, direction_ver, speed))
+
     elif the_class == 'rotate':
         direction = np.random.randint(0, 2)
         if direction == 0:
             direction = -1
         speed = np.random.randint(1, 4)
+        print('%s: direction: %d, speed: %d' % (the_class, direction, speed))
+
     elif the_class == 'scale':
         direction = np.random.randint(0, 2)
         if direction == 0:
             direction = -1
         speed = np.random.randint(1, 3)
+        print('%s: direction: %d, speed: %d' % (the_class, direction, speed))
+
     else:
         print('error: class not recognized')
 
     image, canvas, full_side = generate_dots(the_class, direction, speed, num_frames)
+
+    # save
+    # save_path = os.path.join(PP.gaff_samples, "%s_testing_image_before.jpg" % (the_class))
+    # image.save(save_path)
+
+    image = apply_distortion(image, full_side)
+    # save
+    # save_path = os.path.join(PP.gaff_samples, "%s_testing_image_after.jpg" % (the_class))
+    # image.save(save_path)
+    
+    
+    all_frames_in_sequence = np.zeros((num_frames, window_side, window_side), dtype=np.uint8)
 
     if the_class == 'translate':
         left_x = full_side // 2 - window_side // 2
@@ -148,8 +204,13 @@ def generate_sequence_dots(the_class, num_frames, seed, window_side):
             bbox_down = bbox_up + window_side
 
             frame = image.crop((bbox_left, bbox_up, bbox_right, bbox_down))
-            save_path = os.path.join(PP.gaff_samples, "%s_2_frame_%d.jpg" % (the_class, f))
-            frame.save(save_path)
+
+            # for avi
+            all_frames_in_sequence[f] = np.array(frame)
+
+            # save individual frames
+            # save_path = os.path.join(PP.gaff_samples, "%s_2_frame_%d.jpg" % (the_class, f))
+            # frame.save(save_path)
 
     elif the_class == 'rotate':
         bbox_left = full_side // 2 - window_side // 2
@@ -160,8 +221,11 @@ def generate_sequence_dots(the_class, num_frames, seed, window_side):
         for f in range(num_frames):
             image_rot = image.rotate(f * speed * direction, resample=Image.BILINEAR)
             frame = image_rot.crop((bbox_left, bbox_up, bbox_right, bbox_down))
-            save_path = os.path.join(PP.gaff_samples, "%s_2_frame_%d.jpg" % (the_class, f))
-            frame.save(save_path)
+
+            all_frames_in_sequence[f] = np.array(frame)
+
+            # save_path = os.path.join(PP.gaff_samples, "%s_2_frame_%d.jpg" % (the_class, f))
+            # frame.save(save_path)
 
     elif the_class == 'scale':
         if direction == 1: # zoom in, things get bigger
@@ -184,15 +248,21 @@ def generate_sequence_dots(the_class, num_frames, seed, window_side):
             frame = image.crop((bbox_left, bbox_up, bbox_right, bbox_down))
             frame = frame.resize((window_side, window_side), Image.BILINEAR)
 
-            save_path = os.path.join(PP.gaff_samples, "%s_2_frame_%d.jpg" % (the_class, f))
-            frame.save(save_path)
+            all_frames_in_sequence[f] = np.array(frame)
+
+            # save_path = os.path.join(PP.gaff_samples, "%s_2_frame_%d.jpg" % (the_class, f))
+            # frame.save(save_path)
 
         # get coordinates of bounding box
         # crop, resize and save
-        pass
+    save_path = os.path.join(PP.gaff_samples, "%s_%d.avi" % (the_class, np.random.randint(1000, 9999)))
+    skvid.vwrite(save_path, all_frames_in_sequence)
 
 
-generate_sequence_dots(the_class='scale', num_frames=30, seed=0, window_side=32)
+for i in range(10):
+    # generate_sequence_dots(the_class='scale', num_frames=30, seed=0, window_side=32)
+    generate_sequence_dots(the_class='translate', num_frames=30, seed=0, window_side=32)
+    # generate_sequence_dots(the_class='rotate', num_frames=30, seed=0, window_side=32)
 
 
 def rotate_grid(grid, degrees):
@@ -442,3 +512,4 @@ Given each seed, each split generates N number of new seeds equal to the number 
 Each sequence in the split uses said seed to generate the specific parameters. 
 
 '''
+
