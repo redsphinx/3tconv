@@ -1,29 +1,6 @@
-import subprocess
-
 from config.base_config import ProjectVariable
 from running import main_file
-
-
-
-def get_gpu_memory_map():
-    # from: https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/3
-    """Get the current gpu usage.
-
-    Returns
-    -------
-    usage: dict
-        Keys are device ids as integers.
-        Values are memory usage as integers in MB.
-    """
-    result = subprocess.check_output(
-        [
-            'nvidia-smi', '--query-gpu=memory.used',
-            '--format=csv,nounits,noheader'
-        ], encoding='utf-8')
-    # Convert lines into a dictionary
-    gpu_memory = [int(x) for x in result.strip().split('\n')]
-    gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
-    return gpu_memory_map
+from utilities import utils
 
 
 def set_init_1():
@@ -279,7 +256,7 @@ def e1010_3T_ucf101():
     project_variable.use_adaptive_lr = True
     project_variable.num_out_channels = [0]
 
-    # wait_for_gpu(wait=True, device_num=project_variable.device)
+    # utils.wait_for_gpu(wait=True, device_num=project_variable.device)
     main_file.run(project_variable)
 
 

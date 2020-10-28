@@ -1,47 +1,8 @@
-from datetime import datetime
-import subprocess
 import time
 
 from config.base_config import ProjectVariable
+from utilities import utils
 from running import main_file
-
-
-def get_gpu_memory_map():
-    # from: https://discuss.pytorch.org/t/access-gpu-memory-usage-in-pytorch/3192/3
-    """Get the current gpu usage.
-
-    Returns
-    -------
-    usage: dict
-        Keys are device ids as integers.
-        Values are memory usage as integers in MB.
-    """
-    result = subprocess.check_output(
-        [
-            'nvidia-smi', '--query-gpu=memory.used',
-            '--format=csv,nounits,noheader'
-        ], encoding='utf-8')
-    # Convert lines into a dictionary
-    gpu_memory = [int(x) for x in result.strip().split('\n')]
-    gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
-    return gpu_memory_map
-
-
-def wait_for_gpu(wait, device_num=None, threshold=100):
-
-    if wait:
-        go = False
-        while not go:
-            gpu_available = get_gpu_memory_map()
-            if gpu_available[device_num] < threshold:
-                go = True
-            else:
-                now = datetime.now()
-                current_time = now.strftime("%H:%M:%S")
-                print('%s Waiting for gpu %d...' % (current_time, device_num))
-                time.sleep(10)
-    else:
-        return
 
 
 def set_init_1():
@@ -663,7 +624,7 @@ def e44_conv3T_jester():
     project_variable.use_adaptive_lr = True
     project_variable.num_out_channels = [0]
 
-    # wait_for_gpu(wait=True, device_num=project_variable.device)
+    # utils.wait_for_gpu(wait=True, device_num=project_variable.device)
     main_file.run(project_variable)
 
 
@@ -699,7 +660,7 @@ def e45_conv3T_jester():
     project_variable.use_adaptive_lr = True
     project_variable.num_out_channels = [0]
 
-    # wait_for_gpu(wait=True, device_num=project_variable.device)
+    # utils.wait_for_gpu(wait=True, device_num=project_variable.device)
     main_file.run(project_variable)
 
 # BUG: experiment number 50 is taken already, because of other project with R(2+)D

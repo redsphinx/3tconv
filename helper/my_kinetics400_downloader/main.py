@@ -595,14 +595,14 @@ def run_parallel_and_wait(which):
           % (start_date, end_date, mode, which))
 
 
-# attempting download of failed ones
-wch = 'test'
-clean_up_partials(wch)
-crosscheck_lists(wch)
-# tools.download_progress_per_class(wch)
-
-run_parallel_and_wait(wch)
-# run('og_list', wch, None, None)
+# # attempting download of failed ones
+# wch = 'test'
+# clean_up_partials(wch)
+# crosscheck_lists(wch)
+# # tools.download_progress_per_class(wch)
+#
+# run_parallel_and_wait(wch)
+# # run('og_list', wch, None, None)
 
 # train: 246534
 # valid: 19906
