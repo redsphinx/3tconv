@@ -141,6 +141,10 @@ class ProjectVariable(object):
             self._save_model = True
             self._save_graphs = True
 
+        # if set to 1, saves every epoch
+        # if set to None, it saves according to the other params
+        self.save_model_every_x_epochs = None  
+
         self._repeat_experiments = 1
         self._at_which_run = 0
         # how to initialize experiment files and saves: 'new': new experiment, 'crashed': experiment crashed before
@@ -674,6 +678,15 @@ class ProjectVariable(object):
     @save_graphs.setter
     def save_graphs(self, value):
         self._save_graphs = value
+
+
+    @property
+    def save_model_every_x_epochs(self):
+        return self._save_model_every_x_epochs
+    
+    @save_model_every_x_epochs.setter
+    def save_model_every_x_epochs(self, value):
+        self._save_model_every_x_epochs = value
 
     @property
     def repeat_experiments(self):

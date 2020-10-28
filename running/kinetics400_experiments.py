@@ -2,16 +2,17 @@ from config.base_config import ProjectVariable
 from running import main_file
 from utilities import utils
 
+# kinetics400
+# train:  213808
+# val:    17243
+# test:   ???
 
 def set_init_1():
     project_variable.end_epoch = 100
     project_variable.dataset = 'kinetics400'
-
-    # total_dp = {  train:  214174,
-    #               val:    17620
-    # }
+    project_variable.sheet_number = 24
     project_variable.num_in_channels = 3
-    project_variable.data_points = [2 * 27,  1 * 27, 0 * 27]
+    project_variable.data_points = [2 * 400,  1 * 400, 0 * 400]
     project_variable.label_size = 400
     project_variable.load_num_frames = 30
     project_variable.label_type = 'categories'
@@ -33,16 +34,19 @@ def set_init_1():
 def e001_3T_kinetics():
     set_init_1()
     project_variable.model_number = 23 # googlenet
-    project_variable.experiment_number = 2000
-    project_variable.sheet_number = 23
-    project_variable.device = 1
+    project_variable.experiment_number = 1
+
+    project_variable.device = 2
     project_variable.end_epoch = 200
-    project_variable.batch_size = 1
-    project_variable.batch_size_val_test = 1
+    project_variable.batch_size = 18   # 5 about 3000
+    project_variable.batch_size_val_test = 30 # 30 about 3000
 
-    project_variable.inference_only_mode = True
+    # project_variable.inference_only_mode = True
+    project_variable.inference_only_mode = False
 
-    project_variable.load_model = False
+    # project_variable.save_model_every_x_epochs = 1
+
+    project_variable.load_model = True # loading pre-trained on ImageNet
     project_variable.load_from_fast = True
 
     project_variable.use_dali = True
@@ -51,6 +55,7 @@ def e001_3T_kinetics():
     project_variable.nas = False
 
     project_variable.stop_at_collapse = True
+    # project_variable.stop_at_collapse = False
     project_variable.early_stopping = True
 
     project_variable.optimizer = 'adam'
@@ -60,7 +65,8 @@ def e001_3T_kinetics():
     main_file.run(project_variable)
 
 
-project_variable = ProjectVariable(debug_mode=True)
+# project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
 
 
 e001_3T_kinetics()

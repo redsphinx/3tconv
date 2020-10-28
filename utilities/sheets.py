@@ -42,7 +42,7 @@ def get_specific_row(experiment_number, sheet_number):
         start = 16
     elif sheet_number in [2, 17]:
         start = 11
-    elif sheet_number in [0, 10, 15, 18, 22, 23]:
+    elif sheet_number in [0, 10, 15, 18, 22, 23, 24]:
         start = 13
     elif sheet_number in [4, 6, 12]:
         start = 17
@@ -384,7 +384,7 @@ def write_settings(project_variable):
 
         ]]
         end_letter = 'U'
-    elif project_variable.sheet_number in [23]:
+    elif project_variable.sheet_number in [23, 24]:
         values = [[
             date.today().strftime('%d-%m-%Y'),  # date                      #A
             datetime.now().strftime('%H:%M:%S'),  # start time experiment   #B
@@ -496,7 +496,7 @@ def extra_write_results(best_run_stop, num_runs_collapsed, row, sheet_number):
             'valueInputOption': VALUE_INPUT_OPTION,
             'data': data
         }
-    elif sheet_number == 23:
+    elif sheet_number in [23, 24]:
         range_name = 'Sheet%d!M%d:N%d' % (sheet_number, row, row)
         data = [
             {

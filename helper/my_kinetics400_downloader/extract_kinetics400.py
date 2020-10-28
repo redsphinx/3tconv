@@ -535,6 +535,6 @@ def get_amount_standardized(which):
 
     print('Downloaded for %s: %d out of %d' % (which, downloaded, len(all_videos)))
 
-while True:
-    get_amount_standardized('valid')
-    time.sleep(300)
+
+get_amount_standardized('train')
+get_amount_standardized('valid')
