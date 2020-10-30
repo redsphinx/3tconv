@@ -352,6 +352,6 @@ def make_dataset(which, num_samples_per_class, num_frames):
 
 
 
-make_dataset('train', 10000, 30)
+# make_dataset('train', 10000, 30)
 # make_dataset('val', 2000, 30)
 # make_dataset('test', 5000, 30)
