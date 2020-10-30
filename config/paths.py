@@ -28,12 +28,10 @@ ucf101_168_224_test = '/fast/gabras/ucf101/data_168_224/test'
 ucf101_168_224_xai = '/fast/gabras/ucf101/data_168_224/xai'
 
 # GAFF (Gabor AFFine)
-gaff_root = '/fast/gabras/gaff'
-gaff_train = '/fast/gabras/gaff/dataset/train'
-gaff_val = '/fast/gabras/gaff/dataset/val'
-gaff_test = '/fast/gabras/gaff/dataset/test'
-gaff_meta = '/fast/gabras/gaff/metadata'
-gaff_samples = '/fast/gabras/gaff/samples'
+dots_root = '/fast/gabras/dots'
+dots_dataset_avi = '/fast/gabras/dots/dataset_avi'
+dots_dataset_frames = '/fast/gabras/dots/dataset_frames'
+dots_samples = '/fast/gabras/dots/samples'
 
 # Kinetics400
 kinetics400_dataset_150_224 = '/fast/gabras/kinetics400_downloader/dataset_150_224'

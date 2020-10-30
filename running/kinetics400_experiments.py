@@ -12,7 +12,7 @@ def set_init_1():
     project_variable.dataset = 'kinetics400'
     project_variable.sheet_number = 24
     project_variable.num_in_channels = 3
-    project_variable.data_points = [2 * 400,  1 * 400, 0 * 400]
+    # project_variable.data_points = [2 * 400,  1 * 400, 0 * 400]
     project_variable.label_size = 400
     project_variable.load_num_frames = 30
     project_variable.label_type = 'categories'

@@ -508,7 +508,7 @@ def get_kinetics400_iter(which, project_variable):
     elif which == 'train':
         print('Loading training iterator...')
         the_iter = kinetics400_create_dali_iterator(project_variable.batch_size,
-                                                    PP.ucf101_168_224_train,
+                                                    PP.kinetics400_train,
                                                     project_variable.dali_workers,
                                                     project_variable.randomize_training_data, 6,
                                                     project_variable.dali_iterator_size[0], True,
