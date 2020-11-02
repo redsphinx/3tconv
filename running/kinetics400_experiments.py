@@ -77,7 +77,8 @@ def e002_3T_kinetics():
 
     project_variable.inference_only_mode = True
     # project_variable.inference_only_mode = False
-    project_variable.eval_on = 'test'
+    # project_variable.eval_on = 'test'
+    project_variable.eval_on = 'val'
     # TODO: standardize the test data
 
     # project_variable.save_model_every_x_epochs = 1
@@ -105,6 +106,6 @@ project_variable = ProjectVariable(debug_mode=True)
 # project_variable = ProjectVariable(debug_mode=False)
 
 
-# e001_3T_kinetics()
-e002_3T_kinetics()
+e001_3T_kinetics()
+# e002_3T_kinetics()
 

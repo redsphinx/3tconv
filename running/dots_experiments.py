@@ -64,3 +64,5 @@ def e001_dots():
 
 project_variable = ProjectVariable(debug_mode=True)
 # project_variable = ProjectVariable(debug_mode=False)
+
+e001_dots()

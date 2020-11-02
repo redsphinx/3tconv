@@ -16,40 +16,40 @@ def run(project_variable, all_data, my_model, device):
     if project_variable.use_dali:
         the_iterator = DL.get_iterator('val', project_variable)
 
-        # if project_variable.dataset == 'jester':
-        #     the_iterator = DL.get_jester_iter('val', project_variable)
-        # elif project_variable.dataset == 'tiny_jester':
-        #     the_iterator = DL.get_tiny_jester_iter('val', project_variable)
-        # elif project_variable.dataset == 'ucf101':
-        #     the_iterator = DL.get_ucf101_iter('val', project_variable)
-        # elif project_variable.dataset == 'kinetics400':
-        #     the_iterator = DL.get_kinetics400_iter('val', project_variable)
-        # else:
-        #     the_iterator = None
-
         steps = 0
 
         for i, data_and_labels in tqdm(enumerate(the_iterator)):
 
-            data = data_and_labels[0]['data']
+            data = data_and_labels[0]['data']  # torch.Size([30, 30, 150, 224, 3])
             labels = data_and_labels[0]['labels']
 
-            # transpose data
-            data = data.permute(0, 4, 1, 2, 3)
-            # convert to floattensor
-            data = data.type(torch.float32)
 
-            if project_variable.model_number not in [51, 52]:
+            if len(data.shape) == 5:
+                # transpose data
+                data = data.permute(0, 4, 1, 2, 3)  # torch.Size([30, 3, 30, 150, 224])
+                # convert to floattensor
+                data = data.type(torch.float32)
 
-                data = data / 255
-                data[:, 0, :, :, :] = (data[:, 0, :, :, :] - 0.485) / 0.229
-                data[:, 1, :, :, :] = (data[:, 1, :, :, :] - 0.456) / 0.224
-                data[:, 2, :, :, :] = (data[:, 2, :, :, :] - 0.406) / 0.225
+                if project_variable.model_number not in [51, 52]:
+
+                    data = data / 255
+                    data[:, 0, :, :, :] = (data[:, 0, :, :, :] - 0.485) / 0.229
+                    data[:, 1, :, :, :] = (data[:, 1, :, :, :] - 0.456) / 0.224
+                    data[:, 2, :, :, :] = (data[:, 2, :, :, :] - 0.406) / 0.225
+
+            elif len(data.shape) == 4:
+                data = data.permute(0, 3, 1, 2)
+                # convert to floattensor
+                data = data.type(torch.float32)
+
 
             labels = labels.type(torch.long)
             labels = labels.flatten()
             if 'jester' in project_variable.dataset:
                 labels = labels - 1
+
+            if not labels.is_cuda:
+                labels = labels.cuda(device)
 
             my_model.eval()
             with torch.no_grad():
