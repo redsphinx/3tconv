@@ -7,6 +7,7 @@ CURRENT PROJECT
 52  small convnet with TACo layers (TACo == NiN=True)
 53  AlexNet-3Tconv
 54  AlexNet-Taco
+55  basic 2D LeNet-5
 
 Note: model 60 reserved already in previous project
 
