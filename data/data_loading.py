@@ -740,13 +740,13 @@ class ImagePipeFileRoot(Pipeline):
 
         super(ImagePipeFileRoot, self).__init__(batch_size, num_threads, device_id, seed=seed)
 
-        self.input = ops.FileReader(file_root=file_root)
-        self.decode = ops.ImageDecoder(device='mixed', output_type=types.RGB, hw_decoder_load=0.65)
+        self.input = ops.FileReader(file_root=file_root, random_shuffle=shuffle, initial_fill=initial_fill, shard_id=0,
+                                    num_shards=1)
+        self.decode = ops.ImageDecoder(device='mixed', output_type=types.GRAY, hw_decoder_load=0.65)
 
-        self.normalize = ops.Normalize(device='gpu')
 
     def define_graph(self):
-        jpegs, labels = self.input()
+        jpegs, labels = self.input(name="Reader")
         images = self.decode(jpegs)
         return images, labels
 
