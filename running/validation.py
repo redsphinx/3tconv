@@ -14,16 +14,18 @@ def run(project_variable, all_data, my_model, device):
         U.initialize(project_variable, all_data)
 
     if project_variable.use_dali:
-        if project_variable.dataset == 'jester':
-            the_iterator = DL.get_jester_iter('val', project_variable)
-        elif project_variable.dataset == 'tiny_jester':
-            the_iterator = DL.get_tiny_jester_iter('val', project_variable)
-        elif project_variable.dataset == 'ucf101':
-            the_iterator = DL.get_ucf101_iter('val', project_variable)
-        elif project_variable.dataset == 'kinetics400':
-            the_iterator = DL.get_kinetics400_iter('val', project_variable)
-        else:
-            the_iterator = None
+        the_iterator = DL.get_iterator('val', project_variable)
+
+        # if project_variable.dataset == 'jester':
+        #     the_iterator = DL.get_jester_iter('val', project_variable)
+        # elif project_variable.dataset == 'tiny_jester':
+        #     the_iterator = DL.get_tiny_jester_iter('val', project_variable)
+        # elif project_variable.dataset == 'ucf101':
+        #     the_iterator = DL.get_ucf101_iter('val', project_variable)
+        # elif project_variable.dataset == 'kinetics400':
+        #     the_iterator = DL.get_kinetics400_iter('val', project_variable)
+        # else:
+        #     the_iterator = None
 
         steps = 0
 
