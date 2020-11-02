@@ -14,7 +14,7 @@ class LeNet5_2d(torch.nn.Module):
         # Max-pooling
         self.max_pool_2 = torch.nn.MaxPool2d(kernel_size=2)
         # Fully connected layer
-        self.fc1 = torch.nn.Linear(16 * 5 * 5,
+        self.fc1 = torch.nn.Linear(16 * 6 * 6,
                                    120)  # convert matrix with 16*5*5 (= 400) features to a matrix of 120 features (columns)
         self.fc2 = torch.nn.Linear(120, 84)  # convert matrix with 120 features to a matrix of 84 features (columns)
         self.fc3 = torch.nn.Linear(84, project_variable.label_size)  # convert matrix with 84 features to a matrix of 10 features (columns)
@@ -30,7 +30,7 @@ class LeNet5_2d(torch.nn.Module):
         x = self.max_pool_2(x)
         # first flatten 'max_pool_2_out' to contain 16*5*5 columns
         # read through https://stackoverflow.com/a/42482819/7551231
-        x = x.view(-1, 16 * 5 * 5)
+        x = x.view(-1, 16 * 6 * 6)
         # FC-1, then perform ReLU non-linearity
         x = torch.nn.functional.relu(self.fc1(x))
         # FC-2, then perform ReLU non-linearity
