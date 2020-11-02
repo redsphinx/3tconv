@@ -9,6 +9,7 @@ from models.resnet18 import ResNet18Explicit, ResNet18Explicit3DConv, ResNet18Ex
 from models.googlenet import Googlenet3TConv_explicit, Googlenet3DConv_explicit
 from models.small_convnet import TACoNet, ConvNet3T
 from models.alexnet import AlexNetExplicit3T, AlexNetExplicitTaco
+from models.lenet5 import LeNet5_2d
 
 
 def get_model(project_variable):
@@ -501,7 +502,14 @@ def get_model(project_variable):
         model.conv4.weight.requires_grad = False
         model.conv5.weight.requires_grad = False
 
+    elif project_variable.model_number == 55:
+        model = LeNet5_2d(project_variable)
 
+        if type(project_variable.load_model) != bool and not project_variable.load_model is None:
+            model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+        else:
+            print('PyTorch model not available: Load model from scratch OR load a pre-trained model that you trained and saved yourself')
+            print('Loading model from scratch')
 
     else:
         print('ERROR: model_number=%d not supported' % project_variable.model_number)
