@@ -636,7 +636,8 @@ class VideoPipeFileRoot(Pipeline):
                  step=-1,
                  stride=1,
                  initial_fill=1024,
-                 seed=0):
+                 seed=0,
+                 channels=3):
 
         super(VideoPipeFileRoot, self).__init__(batch_size, num_threads, device_id, seed=seed)
 
@@ -648,7 +649,8 @@ class VideoPipeFileRoot(Pipeline):
                                      shard_id=0,
                                      num_shards=1,
                                      random_shuffle=shuffle,
-                                     initial_fill=initial_fill)
+                                     initial_fill=initial_fill,
+                                     channels=channels)
 
         self.normalize = ops.Normalize(device='gpu')
 
@@ -658,7 +660,7 @@ class VideoPipeFileRoot(Pipeline):
 
 
 def file_root_dali_iterator(batch_size, file_root, num_workers, do_shuffle, the_seed, iterator_size, reset, device,
-                            num_frames):
+                            num_frames, channels):
     pipe = VideoPipeFileRoot(batch_size=batch_size,
                              file_root=file_root,
                              shuffle=do_shuffle,
@@ -666,7 +668,8 @@ def file_root_dali_iterator(batch_size, file_root, num_workers, do_shuffle, the_
                              num_threads=num_workers,
                              seed=the_seed,
                              device_id=device,
-                             sequence_length=num_frames)
+                             sequence_length=num_frames,
+                             channels=channels)
     pipe.build()
 
     if iterator_size == 'all':
@@ -680,13 +683,14 @@ def file_root_dali_iterator(batch_size, file_root, num_workers, do_shuffle, the_
     return dali_iter
 
 
-def get_file_root_iterator(which, project_variable, path_train, path_val, path_test, path_xai):
+def get_file_root_iterator(which, project_variable, path_train, path_val, path_test, path_xai, chan):
     assert which in ['train', 'val', 'test', 'xai']
 
     num_workers = project_variable.dali_workers
     reset = True
     device = project_variable.device
     num_frames = project_variable.load_num_frames
+    channels = chan
 
     if which in ['val']:
         print('Loading iterator for validation...')
@@ -722,7 +726,7 @@ def get_file_root_iterator(which, project_variable, path_train, path_val, path_t
 
 
     the_iter = file_root_dali_iterator(batch_size, file_root, num_workers, do_shuffle, the_seed, iterator_size, reset,
-                                       device, num_frames)
+                                       device, num_frames, channels)
     return the_iter
 
 
@@ -835,23 +839,24 @@ def get_iterator(which, project_variable):
         p_val = os.path.join(PP.jester_location, 'filelist_val_200c_150_224.txt')
         p_test = os.path.join(PP.jester_location, 'filelist_test_500c_150_224.txt')
         p_xai = None
-
         iterator = get_file_list_iterator(which, project_variable, p_train, p_val, p_test, p_xai)
 
     elif project_variable.dataset == 'ucf101':
+        channels = 3
         iterator = get_file_root_iterator(which, project_variable, PP.ucf101_168_224_train, PP.ucf101_168_224_test,
-                                          PP.ucf101_168_224_test, PP.ucf101_168_224_xai)
+                                          PP.ucf101_168_224_test, PP.ucf101_168_224_xai, channels)
 
     elif project_variable.dataset == 'kinetics400':
         iterator = get_file_root_iterator(which, project_variable, PP.kinetics400_train, PP.kinetics400_val,
-                                          PP.kinetics400_test, None)
+                                          PP.kinetics400_test, None, 3)
 
     elif project_variable.dataset == 'dots_avi':
         p_train = os.path.join(PP.dots_dataset_avi, 'train')
         p_val = os.path.join(PP.dots_dataset_avi, 'val')
         p_test = os.path.join(PP.dots_dataset_avi, 'test')
         p_xai = None
-        iterator = get_file_root_iterator(which, project_variable, p_train, p_val, p_test, p_xai)
+        channels = 3
+        iterator = get_file_root_iterator(which, project_variable, p_train, p_val, p_test, p_xai, channels)
 
     elif project_variable.dataset == 'dots_frames':
         p_train = os.path.join(PP.dots_dataset_frames, 'train')

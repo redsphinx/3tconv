@@ -282,7 +282,7 @@ def generate_sequence_dots(the_class, num_frames, seed, window_side, really_big=
     return all_frames_in_sequence, annotation
     
 
-def make_dataset(which, num_samples_per_class, num_frames):
+def make_dataset(which, num_samples_per_class, num_frames, side):
     print('which: %s' % which)
 
     which_seeds = [6, 42, 420]
@@ -314,7 +314,7 @@ def make_dataset(which, num_samples_per_class, num_frames):
         U.opt_makedirs(frames_class_path)
 
         for s in tqdm(range(num_samples_per_class)):
-            all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], 32)
+            all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], side)
             choose_frame = np.random.randint(0, num_frames)
             frame = all_frames_array[choose_frame]
 
@@ -351,7 +351,11 @@ def make_dataset(which, num_samples_per_class, num_frames):
                 my_file.write(line)
 
 
+# debugging the nvidia dali "Video is too small in at least one dimension"
+# make_dataset('val', 100, 30, 33)
+# F_ixed: works now with side = 33, instead of 32
 
-# make_dataset('train', 10000, 30)
-# make_dataset('val', 2000, 30)
-# make_dataset('test', 5000, 30)
+
+# make_dataset('train', 10000, 30, 33)
+# make_dataset('val', 2000, 30, 33)
+# make_dataset('test', 5000, 30, 33)
