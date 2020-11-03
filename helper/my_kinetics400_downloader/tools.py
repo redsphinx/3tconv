@@ -265,6 +265,19 @@ def get_to_be_removed_from_fail_list(which):
 
 
 def fix_category_text(name):
+    if '-' in name or '+' in name:
+        parts = name.split(' ')
+        valid = []
+        for i in parts:
+            if '-' in i or '+' in i:
+                pass
+            else:
+                valid.append(i)
+        new_name = ''
+        for i in valid:
+            new_name = new_name + i + ' '
+        name = new_name.strip()
+
     name = name.replace(' ', '_')
     return name
 

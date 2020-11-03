@@ -19,7 +19,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import math
 import random
-
+import json
 
 
 def get_info(meta_data):
@@ -535,6 +535,64 @@ def get_amount_standardized(which):
 
     print('Downloaded for %s: %d out of %d' % (which, downloaded, len(all_videos)))
 
+# get_amount_standardized('train')
+# get_amount_standardized('valid')
 
-get_amount_standardized('train')
-get_amount_standardized('valid')
+
+def create_meta_class_filelist():
+    '''
+    get the categories and classes belonging to categories
+    make a list enumerating the categories, save it
+    for each split
+        make a list with "path_fo_avi,category_number"
+    save lists
+
+    don't forget to add this change in the data_loading file
+    '''
+
+    categories_path = os.path.join(tools.resources, 'categories.json')
+    with open(categories_path) as json_file:
+        cat_to_class_dict = json.load(json_file)
+    categories_list = list(cat_to_class_dict.keys())
+
+    categories_fixed_name_list = [tools.fix_category_text(i) for i in categories_list]
+    categories_fixed_name_list.sort()
+    categories_mapped_path = os.path.join(tools.resources, 'categories_mapped.txt')
+    with open(categories_mapped_path, 'w') as my_file:
+        for i, v in enumerate(categories_fixed_name_list):
+            line = '%s,%d\n' %(v, i+1)
+            # print(line)
+            my_file.write(line)
+
+    class_to_cat_dict = {}
+
+    for i in categories_list:
+        classes = cat_to_class_dict[i]
+        for c in classes:
+            class_name_fixed = tools.fix_category_text(c)
+            class_to_cat_dict[class_name_fixed] = tools.fix_category_text(i)
+
+    splits = ['train', 'valid']
+
+    for which in splits:
+        print(which)
+        which_categories_file_list = os.path.join(tools.main_path_standardized, '%s_meta_class_filelist.txt' % which)
+
+        which_dataset = os.path.join(tools.main_path_standardized, which)
+        classes = os.listdir(which_dataset)
+
+        for c in tqdm(classes):
+            # starts at 1, space between columns; same as jester dataset
+            index = categories_fixed_name_list.index(class_to_cat_dict[c]) + 1
+            class_path = os.path.join(which_dataset, c)
+            videos = os.listdir(class_path)
+
+            with open(which_categories_file_list, 'a') as my_file:
+                for v in videos:
+                    video_path = os.path.join(class_path, v)
+                    # starts at 1, space between columns; same as jester dataset
+                    line = '%s %d\n' % (video_path, index)
+                    # print(line)
+                    my_file.write(line)
+
+
