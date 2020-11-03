@@ -866,4 +866,11 @@ def get_iterator(which, project_variable):
 
         iterator = get_image_file_root_iterator(which, project_variable, p_train, p_val, p_test, p_xai)
 
+    elif project_variable.dataset == 'kinetics400_metaclass':
+        p_train = PP.kinetics400_train_meta
+        p_val = PP.kinetics400_val_meta
+        p_test = None
+        p_xai = None
+        iterator = get_file_list_iterator(which, project_variable, p_train, p_val, p_test, p_xai)
+
     return iterator

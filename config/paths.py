@@ -40,7 +40,8 @@ kinetics400_dataset_150_224 = '/fast/gabras/kinetics400_downloader/dataset_150_2
 kinetics400_train = '/fast/gabras/kinetics400_downloader/dataset_150_224/train'
 kinetics400_val = '/fast/gabras/kinetics400_downloader/dataset_150_224/valid'
 kinetics400_test = '/fast/gabras/kinetics400_downloader/dataset_150_224/test'
-
+kinetics400_train_meta = '/fast/gabras/kinetics400_downloader/dataset_150_224/train_meta_class_filelist.txt'
+kinetics400_val_meta = '/fast/gabras/kinetics400_downloader/dataset_150_224/valid_meta_class_filelist.txt'
 
 
 

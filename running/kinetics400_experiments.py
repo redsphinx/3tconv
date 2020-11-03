@@ -67,6 +67,9 @@ def e001_3T_kinetics():
 
 def e002_3T_kinetics():
     set_init_1()
+    project_variable.dataset = 'kinetics400_metaclass'
+    project_variable.label_size = 39
+
     project_variable.model_number = 23 # googlenet
     project_variable.experiment_number = 2
 
@@ -75,8 +78,8 @@ def e002_3T_kinetics():
     project_variable.batch_size = 18   # 5 about 3000
     project_variable.batch_size_val_test = 30 # 30 about 3000
 
-    project_variable.inference_only_mode = True
-    # project_variable.inference_only_mode = False
+    # project_variable.inference_only_mode = True
+    project_variable.inference_only_mode = False
     # project_variable.eval_on = 'test'
     project_variable.eval_on = 'val'
     # TODO: standardize the test data
@@ -84,7 +87,7 @@ def e002_3T_kinetics():
     # project_variable.save_model_every_x_epochs = 1
 
     project_variable.load_model = True # loading pre-trained on ImageNet
-    project_variable.load_model = [1, 23, 4, 0]
+    # project_variable.load_model = [1, 23, 4, 0]
 
     project_variable.load_from_fast = True
 
@@ -102,10 +105,10 @@ def e002_3T_kinetics():
 
     main_file.run(project_variable)
 
-project_variable = ProjectVariable(debug_mode=True)
-# project_variable = ProjectVariable(debug_mode=False)
+# project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
 
 
-e001_3T_kinetics()
-# e002_3T_kinetics()
+# e001_3T_kinetics()
+e002_3T_kinetics()
 
