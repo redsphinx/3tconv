@@ -45,7 +45,7 @@ def run(project_variable, all_data, my_model, device):
 
             labels = labels.type(torch.long)
             labels = labels.flatten()
-            if 'jester' in project_variable.dataset:
+            if project_variable.dataset in ['jester', 'kinetics400_metaclass']:
                 labels = labels - 1
 
             if not labels.is_cuda:
