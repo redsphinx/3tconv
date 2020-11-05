@@ -249,6 +249,10 @@ class ProjectVariable(object):
         # if False, nin does not get trained
         self._train_nin_mode = 'joint'
 
+        # ----------------------------------------------------------------------------------------------------------
+        # generating dots dataset
+        # ----------------------------------------------------------------------------------------------------------
+        self._dots_mode = False
 
     @property
     def writer(self):
@@ -983,3 +987,11 @@ class ProjectVariable(object):
     @train_nin_mode.setter
     def train_nin_mode(self, value):
         self._train_nin_mode = value
+
+    @property
+    def dots_mode(self):
+        return self._dots_mode
+
+    @dots_mode.setter
+    def dots_mode(self, value):
+        self._dots_mode = value

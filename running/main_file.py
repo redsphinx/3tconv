@@ -467,3 +467,6 @@ def run(project_variable):
 
     if project_variable.nas:
         return project_variable.individual_number, has_collapsed, val_accuracy, train_accuracy
+
+    if project_variable.dots_mode:
+        return val_accuracy

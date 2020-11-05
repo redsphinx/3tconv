@@ -2,6 +2,7 @@
 from tqdm import tqdm
 import numpy as np
 import os
+import subprocess
 from PIL import Image, ImageDraw, ImageFilter
 import tkinter as tk
 import time
@@ -13,7 +14,10 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 import config.paths as PP
+from config.base_config import ProjectVariable
+from running import main_file
 import utilities.utils as U
+
 
 
 def generate_dots(the_class, direction=None, speed=None, num_frames=30, window_side=32, really_big=False, big_factor=5):
@@ -109,6 +113,7 @@ def parameterized_generate_dots(parameters, the_class, direction=None, speed=Non
 
     if the_class == 'translate':
         rad_dot_m_t, num_dots_low_t, num_dots_high_t = parameters
+        # 2-10  10-100  20-110
 
         if speed is None:
             speed = 1
@@ -120,8 +125,8 @@ def parameterized_generate_dots(parameters, the_class, direction=None, speed=Non
 
         # num_dots_low = speed * 1 / radius_dot_min * 60
         # num_dots_high = speed * 1 / radius_dot_min * 70
-        num_dots_low = num_dots_low_t
-        num_dots_high = num_dots_high_t
+        num_dots_low = speed * 1 / radius_dot_min * num_dots_low_t
+        num_dots_high = speed * 1 / radius_dot_min * num_dots_high_t
 
         if really_big:
             full_side = full_side * big_factor
@@ -479,3 +484,150 @@ def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None
 
 # make_dataset('train', 5000, 30, 33)
 # make_dataset('val', 1000, 30, 33)
+
+
+def config_pv(device_num):
+    project_variable = ProjectVariable(debug_mode=True)
+    project_variable.end_epoch = 10
+    project_variable.dataset = 'dots_frames'
+    project_variable.sheet_number = 25
+    project_variable.num_in_channels = 1
+    project_variable.label_size = 3
+    project_variable.label_type = 'categories'
+    project_variable.repeat_experiments = 1
+    project_variable.save_only_best_run = True
+    project_variable.same_training_data = True
+    project_variable.randomize_training_data = True
+    project_variable.balance_training_data = True
+    project_variable.theta_init = None
+    project_variable.srxy_init = 'eye'
+    project_variable.weight_transform = 'seq'
+    project_variable.experiment_state = 'new'
+    project_variable.eval_on = 'val'
+    project_variable.model_number = 55 # lenet5 2D
+    project_variable.experiment_number = 192323838388383
+    project_variable.device = device_num
+    project_variable.batch_size = 32
+    project_variable.batch_size_val_test = 32
+    project_variable.inference_only_mode = False
+    project_variable.load_model = False # loading model from scratch
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+    project_variable.dots_mode = True
+    project_variable.stop_at_collapse = False
+    project_variable.early_stopping = False
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.001
+    project_variable.use_adaptive_lr = True
+    return project_variable
+
+
+def opt_remove_dataset():
+    if os.path.exists(PP.dots_dataset_avi):
+        command = 'rm -rf %s' % PP.dots_dataset_avi
+        subprocess.call(command, shell=True)
+        command = 'mkdir %s' % PP.dots_dataset_avi
+        subprocess.call(command, shell=True)
+
+    if os.path.exists(PP.dots_dataset_frames):
+        command = 'rm -rf %s' % PP.dots_dataset_frames
+        subprocess.call(command, shell=True)
+        command = 'mkdir %s' % PP.dots_dataset_frames
+        subprocess.call(command, shell=True)
+
+
+def sample_params():
+    # parameters_path = os.path.join(PP.dots_root, 'resources/parameters_tried.txt')
+    # parameters_tried = np.genfromtxt(parameters_path, int, delimiter=',')[:, 0:-1]
+    #
+    # parameters_tried = list(parameters_tried)
+    
+    # randomly choose parameters
+    np.random.seed() # reset the seed
+    # the_same = True
+    # while the_same:
+    rad_dot_m_t = np.random.randint(2, 11)
+    # rad_dot_m_t = np.arange(2, 11, 1)
+    num_dots_low_t = np.random.randint(1, 11) * 10
+    # num_dots_low_t = np.arange(10, 110, 10)
+    num_dots_high_t = np.random.randint(2, 12) * 10
+    # num_dots_high_t = np.arange(20, 120, 10)
+
+    rad_dot_m_r = np.random.randint(2, 11)
+    # rad_dot_m_r = np.arange(2, 11, 1)
+    num_dots_low_r = np.random.randint(1, 11) * 10
+    # num_dots_low_r = np.arange(10, 110, 10)
+    num_dots_high_r = np.random.randint(2, 12) * 10
+    # num_dots_high_r = np.arange(20, 120, 10)
+
+    num_dots_low_s = np.random.randint(10, 16)
+    # num_dots_low_s = np.arange(10, 16, 1)
+    num_dots_high_s = np.random.randint(11, 17)
+    # num_dots_high_s = np.arange(11, 17, 1)
+    radius_dot_min_s_pos_dir = np.random.randint(3, 10)
+    # radius_dot_min_s_pos_dir = np.arange(3, 10, 1)
+    radius_dot_max_s_pos_dir = np.random.randint(4, 11)
+    # radius_dot_max_s_pos_dir = np.arange(4, 11, 1)
+    radius_dot_min_s_neg_dir = np.random.randint(3, 10)
+    # radius_dot_min_s_neg_dir = np.arange(3, 10, 1)
+    radius_dot_max_s_neg_dir = np.random.randint(4, 11)
+    # radius_dot_max_s_neg_dir = np.arange(4, 11, 1)
+
+        # param_str = '%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d' % (
+        # rad_dot_m_t, num_dots_low_t, num_dots_high_t, rad_dot_m_r, num_dots_low_r, num_dots_high_r,
+        # num_dots_low_s, num_dots_high_s, radius_dot_min_s_pos_dir, radius_dot_max_s_pos_dir,
+        # radius_dot_min_s_neg_dir, radius_dot_max_s_neg_dir)
+        #
+        # if param_str not in parameters_tried:
+    parameters = [rad_dot_m_t, num_dots_low_t, num_dots_high_t, rad_dot_m_r, num_dots_low_r, num_dots_high_r,
+                  num_dots_low_s, num_dots_high_s, radius_dot_min_s_pos_dir, radius_dot_max_s_pos_dir,
+                  radius_dot_min_s_neg_dir, radius_dot_max_s_neg_dir]
+            # the_same = False
+
+    return parameters
+
+
+def save_results(val_acc, parameters):
+    param_path = os.path.join(PP.dots_root, 'resources/parameters_tried.txt')
+    param_str = '%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%f\n' % (parameters[0], parameters[1], parameters[2], parameters[3],
+                                                            parameters[4], parameters[5], parameters[6], parameters[7],
+                                                            parameters[8], parameters[9], parameters[10],
+                                                            parameters[11], val_acc)
+    with open(param_path, 'a') as my_file:
+        my_file.write(param_str)
+
+def generation_loop_with_cnn(device_num=0):
+
+    '''
+    rad_dot_m_t, num_dots_low_t, num_dots_high_t = parameters
+    2, 10, 20
+    rad_dot_m_r, num_dots_low_r, num_dots_high_r = parameters
+    2, 10, 20
+    num_dots_low_s, num_dots_high_s, radius_dot_min_s_pos_dir, radius_dot_max_s_pos_dir, radius_dot_min_s_neg_dir, radius_dot_max_s_neg_dir = parameters
+    10, 11, 3, 4, 3, 4 
+    
+    '''
+    parameters = [2, 10, 20, 2, 10, 20, 10, 11, 3, 4, 3, 4]
+    pv = config_pv(device_num)
+    random_acc = 1/3
+    val_acc = 0
+    e = 0.05
+
+    it = 1
+    while val_acc > random_acc+e:
+        opt_remove_dataset()
+        make_dataset('train', 1000, 30, 33)
+        make_dataset('val', 500, 30, 33)
+        val_acc = main_file.run(pv)
+
+        if val_acc > random_acc+e:
+            print('%d:  val_acc: %f. parameters tried: %s' % (it, val_acc, str(parameters)))
+            save_results(val_acc, parameters)
+            # generate new parameters
+            parameters = sample_params()
+        else:
+            print('OPTIMAL PARAMETERS FOUND!')
+            print('%d:  val_acc: %f. parameters: %s' % (it, val_acc, str(parameters)))
+            save_results(val_acc, parameters)
