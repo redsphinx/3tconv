@@ -100,34 +100,128 @@ def generate_dots(the_class, direction=None, speed=None, num_frames=30, window_s
     return image, canvas, full_side
 
 
+def parameterized_generate_dots(parameters, the_class, direction=None, speed=None, num_frames=30, window_side=32, really_big=False,
+                                big_factor=5):
+
+    '''
+    parameterized version to let network generate the parameters
+    '''
+
+    if the_class == 'translate':
+        rad_dot_m_t, num_dots_low_t, num_dots_high_t = parameters
+
+        if speed is None:
+            speed = 1
+
+        full_side = window_side + speed * num_frames * 2
+        # radius_dot_min = np.random.randint(1, 6)
+        radius_dot_min = np.random.randint(1, rad_dot_m_t)
+        radius_dot_max = radius_dot_min + 1
+
+        # num_dots_low = speed * 1 / radius_dot_min * 60
+        # num_dots_high = speed * 1 / radius_dot_min * 70
+        num_dots_low = num_dots_low_t
+        num_dots_high = num_dots_high_t
+
+        if really_big:
+            full_side = full_side * big_factor
+            radius_dot_min = radius_dot_min * big_factor
+            radius_dot_max = radius_dot_max * big_factor
+            num_dots_low = num_dots_low * big_factor**2
+            num_dots_high = num_dots_high * big_factor**2
+
+        num_dots = np.random.randint(num_dots_low, num_dots_high)
+
+    elif the_class == 'rotate':
+        rad_dot_m_r, num_dots_low_r, num_dots_high_r = parameters
+
+        full_side = int(np.sqrt(2 * window_side**2)) + 1
+        # num_dots = np.random.randint(5, 11)
+        num_dots = np.random.randint(num_dots_low_r, num_dots_high_r)
+        # radius_dot_min = np.random.randint(1, 4)
+        radius_dot_min = np.random.randint(1, rad_dot_m_r)
+        radius_dot_max = radius_dot_min + 1
+
+        if really_big:
+            full_side = full_side * big_factor
+            num_dots = num_dots * big_factor**2
+            radius_dot_min = radius_dot_min * big_factor
+            radius_dot_max = radius_dot_max * big_factor
+
+    elif the_class == 'scale':
+        num_dots_low_s, num_dots_high_s, radius_dot_min_s_pos_dir, radius_dot_max_s_pos_dir, radius_dot_min_s_neg_dir, \
+        radius_dot_max_s_neg_dir = parameters
+
+        if speed is None:
+            speed = 1
+        full_side = window_side + speed * num_frames * 2
+
+        # num_dots = np.random.randint(10, 13)
+        num_dots = np.random.randint(num_dots_low_s, num_dots_high_s)
+        if direction == 1:
+            # radius_dot_min = 6
+            # radius_dot_max = 9
+            radius_dot_min = radius_dot_min_s_pos_dir
+            radius_dot_max = radius_dot_max_s_pos_dir
+        else:
+            # radius_dot_min = 7
+            # radius_dot_max = 10
+            radius_dot_min = radius_dot_min_s_neg_dir
+            radius_dot_max = radius_dot_max_s_neg_dir
+
+        if really_big:
+            full_side = full_side * big_factor
+            # num_dots = num_dots * big_factor**2
+            num_dots = num_dots * big_factor*(big_factor-2)
+            radius_dot_min = radius_dot_min * big_factor
+            radius_dot_max = radius_dot_max * big_factor
+
+    else:
+        print('error: class not recognized')
+        return None
+
+    # canvas
+    image = Image.new('L', (full_side, full_side))
+    canvas = ImageDraw.Draw(image)
+
+    sample_x = np.random.randint(5, full_side-6, num_dots)
+    sample_y = np.random.randint(5, full_side-6, num_dots)
+    sizes_dots = np.random.randint(radius_dot_min, radius_dot_max, num_dots)
+
+    # draw on canvas
+    for n in range(num_dots):
+        canvas.ellipse((sample_x[n], sample_y[n], sample_x[n]+sizes_dots[n], sample_y[n]+sizes_dots[n]), fill='white')
+
+    # tmp_path = os.path.join(PP.dots_samples, "%s_dots_%d.jpg" % (the_class, np.random.randint(1000, 9999)))
+    # image.save(tmp_path)
+
+    return image, canvas, full_side
+
+
 def apply_distortion(image, full_side):
+    
+    # random rotation
     angle = np.random.randint(10, 30)
     direction = np.random.randint(0, 2)
     if direction == 0:
         direction = -1
 
-    retry = True
-    count = 0
     image_rot = image.rotate(direction*angle, resample=Image.BILINEAR)
+    
+    # random scale
+    amount = np.random.randint(1, 6)
 
-    while retry:
-        frame = image_rot.crop((0+count, 0+count, full_side-count, full_side-count))
-
-        if frame.size != (0, 0):
-            retry = False
-        else:
-            count = count + 1
-
-    frame = frame.resize((full_side, full_side), Image.BILINEAR)
-
-    # add gaussian blur
-    # if np.random.randint(0, 2):
-    #     frame = frame.filter(ImageFilter.GaussianBlur(radius=1))
-
+    if direction == -1:
+        frame = image_rot.resize((full_side+amount, full_side+amount), Image.BILINEAR)
+        frame = frame.crop((0+amount, 0+amount, full_side-amount, full_side-amount))
+    else:
+        frame = image_rot.crop((0+amount, 0+amount, full_side-amount, full_side-amount))
+        frame = frame.resize((full_side, full_side), Image.BILINEAR)
+    
     return frame
 
 
-def generate_sequence_dots(the_class, num_frames, seed, window_side, really_big=True, big_factor=5):
+def generate_sequence_dots(the_class, num_frames, seed, window_side, really_big=True, big_factor=5, parameters=None):
 
     np.random.seed(seed)
 
@@ -166,7 +260,12 @@ def generate_sequence_dots(the_class, num_frames, seed, window_side, really_big=
     else:
         print('error: class not recognized')
 
-    image, canvas, full_side = generate_dots(the_class, direction, speed, num_frames, really_big=really_big)
+    if parameters is not None:
+        image, canvas, full_side = parameterized_generate_dots(parameters, the_class, direction, speed, num_frames,
+                                                               really_big=really_big)
+    else:
+        image, canvas, full_side = generate_dots(the_class, direction, speed, num_frames, really_big=really_big)
+
     image = apply_distortion(image, full_side)
     all_frames_in_sequence = np.zeros((num_frames, window_side, window_side), dtype=np.uint8)
 
@@ -282,17 +381,35 @@ def generate_sequence_dots(the_class, num_frames, seed, window_side, really_big=
     return all_frames_in_sequence, annotation
     
 
-def make_dataset(which, num_samples_per_class, num_frames, side):
+def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None):
+
+    '''
+    rad_dot_m_t, num_dots_low_t, num_dots_high_t = parameters
+    rad_dot_m_r, num_dots_low_r, num_dots_high_r = parameters
+    num_dots_low_s, num_dots_high_s, radius_dot_min_s_pos_dir, radius_dot_max_s_pos_dir, radius_dot_min_s_neg_dir, radius_dot_max_s_neg_dir = parameters
+
+    parameters = [rad_dot_m_t, num_dots_low_t, num_dots_high_t, rad_dot_m_r, num_dots_low_r, num_dots_high_r,
+    num_dots_low_s, num_dots_high_s, radius_dot_min_s_pos_dir, radius_dot_max_s_pos_dir, radius_dot_min_s_neg_dir,
+    radius_dot_max_s_neg_dir]
+    '''
+
     print('which: %s' % which)
 
     which_seeds = [6, 42, 420]
     if which == 'train':
         master_seed = which_seeds[0]
+        if parameters is not None:
+            parameters = parameters[0:3]
 
     elif which == 'val':
         master_seed = which_seeds[1]
+        if parameters is not None:
+            parameters = parameters[3:6]
+
     else:
         master_seed = which_seeds[2]
+        if parameters is not None:
+            parameters = parameters[6:]
 
     np.random.seed(master_seed)
 
@@ -314,7 +431,7 @@ def make_dataset(which, num_samples_per_class, num_frames, side):
         U.opt_makedirs(frames_class_path)
 
         for s in tqdm(range(num_samples_per_class)):
-            all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], side)
+            all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], side, parameters=parameters)
             choose_frame = np.random.randint(0, num_frames)
             frame = all_frames_array[choose_frame]
 
@@ -352,10 +469,13 @@ def make_dataset(which, num_samples_per_class, num_frames, side):
 
 
 # debugging the nvidia dali "Video is too small in at least one dimension"
-# make_dataset('val', 100, 30, 33)
+# make_dataset('val', 20, 30, 33)
 # F_ixed: works now with side = 33, instead of 32
 
 
 # make_dataset('train', 10000, 30, 33)
 # make_dataset('val', 2000, 30, 33)
 # make_dataset('test', 5000, 30, 33)
+
+# make_dataset('train', 5000, 30, 33)
+# make_dataset('val', 1000, 30, 33)

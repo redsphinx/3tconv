@@ -1,0 +1,18 @@
+TRANSLATE
+rad_dot_m_t         upper boundary radius dot for generation radius_dot_min
+num_dots_low_t      lower boundary number of dots
+num_dots_high_t     higher boundary number of dots
+
+
+ROTATE
+num_dots_low_r      lower boundary number of dots
+num_dots_high_r     higher boundary number of dots
+rad_dot_m_r         upper boundary radius dot for generation radius_dot_min
+
+SCALE
+num_dots_low_s      lower boundary number of dots
+num_dots_high_s     higher boundary number of dots
+radius_dot_min_s_pos_dir    lower boundary radius dot if dir is pos
+radius_dot_max_s_pos_dir    higher boundary radius dot if dir is pos
+radius_dot_min_s_neg_dir    lower boundary radius dot if dir is neg
+radius_dot_max_s_neg_dir    higher boundary radius dot if dir is neg

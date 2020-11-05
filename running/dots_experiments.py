@@ -34,7 +34,7 @@ def e001_dots():
     project_variable.model_number = 55 # lenet5 2D
     project_variable.experiment_number = 1
 
-    project_variable.device = 2
+    project_variable.device = 0
     project_variable.end_epoch = 10
     project_variable.batch_size = 32
     project_variable.batch_size_val_test = 32
@@ -69,7 +69,7 @@ def e002_dots():
     project_variable.model_number = 56 # lenet5 3t
     project_variable.experiment_number = 2
 
-    project_variable.device = 2
+    project_variable.device = 0
     project_variable.end_epoch = 10
     project_variable.batch_size = 32
     project_variable.batch_size_val_test = 32
@@ -100,5 +100,5 @@ def e002_dots():
 project_variable = ProjectVariable(debug_mode=True)
 # project_variable = ProjectVariable(debug_mode=False)
 
-# e001_dots()
-e002_dots()
+e001_dots()
+# e002_dots()
