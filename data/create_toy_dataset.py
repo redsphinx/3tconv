@@ -403,18 +403,13 @@ def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None
     which_seeds = [6, 42, 420]
     if which == 'train':
         master_seed = which_seeds[0]
-        if parameters is not None:
-            parameters = parameters[0:3]
 
     elif which == 'val':
         master_seed = which_seeds[1]
-        if parameters is not None:
-            parameters = parameters[3:6]
 
     else:
         master_seed = which_seeds[2]
-        if parameters is not None:
-            parameters = parameters[6:]
+
 
     np.random.seed(master_seed)
 
@@ -427,6 +422,21 @@ def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None
     for i, c in enumerate(classes):
         print('class: %s' % c)
 
+        if parameters is not None:
+            if c == 'translate':
+                params = parameters[0:3]
+            elif c == 'rotate':
+                params = parameters[3:6]
+            elif c == 'scale':
+                params = parameters[6:]
+            else:
+                print('this is a weird class %s' % c)
+                params = None
+
+        else:
+            params = None
+
+
         np.random.seed(class_seeds[i])
         video_seeds = np.random.randint(0, 1000000, num_samples_per_class)
 
@@ -435,8 +445,9 @@ def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None
         U.opt_makedirs(avi_class_path)
         U.opt_makedirs(frames_class_path)
 
-        for s in tqdm(range(num_samples_per_class)):
-            all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], side, parameters=parameters)
+        # for s in tqdm(range(num_samples_per_class)):
+        for s in range(num_samples_per_class):
+            all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], side, parameters=params)
             choose_frame = np.random.randint(0, num_frames)
             frame = all_frames_array[choose_frame]
 
@@ -612,14 +623,14 @@ def generation_loop_with_cnn(device_num=0):
     parameters = [2, 10, 20, 2, 10, 20, 10, 11, 3, 4, 3, 4]
     pv = config_pv(device_num)
     random_acc = 1/3
-    val_acc = 0
+    val_acc = 1
     e = 0.05
 
     it = 1
     while val_acc > random_acc+e:
         opt_remove_dataset()
-        make_dataset('train', 1000, 30, 33)
-        make_dataset('val', 500, 30, 33)
+        make_dataset('train', 500, 30, 33, parameters)
+        make_dataset('val', 200, 30, 33, parameters)
         val_acc = main_file.run(pv)
 
         if val_acc > random_acc+e:
@@ -631,3 +642,8 @@ def generation_loop_with_cnn(device_num=0):
             print('OPTIMAL PARAMETERS FOUND!')
             print('%d:  val_acc: %f. parameters: %s' % (it, val_acc, str(parameters)))
             save_results(val_acc, parameters)
+
+        it = it + 1
+
+
+generation_loop_with_cnn(0)
