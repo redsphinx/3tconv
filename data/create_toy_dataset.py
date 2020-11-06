@@ -561,29 +561,31 @@ def sample_params():
     # while the_same:
     rad_dot_m_t = np.random.randint(2, 11)
     # rad_dot_m_t = np.arange(2, 11, 1)
-    num_dots_low_t = np.random.randint(1, 11) * 10
+    num_dots_low_t = np.random.randint(1, 11)
     # num_dots_low_t = np.arange(10, 110, 10)
-    num_dots_high_t = np.random.randint(2, 12) * 10
+    num_dots_high_t = np.random.randint(num_dots_low_t+1, 12) * 10
+    num_dots_low_t = num_dots_low_t * 10
     # num_dots_high_t = np.arange(20, 120, 10)
 
     rad_dot_m_r = np.random.randint(2, 11)
     # rad_dot_m_r = np.arange(2, 11, 1)
-    num_dots_low_r = np.random.randint(1, 11) * 10
+    num_dots_low_r = np.random.randint(1, 11)
     # num_dots_low_r = np.arange(10, 110, 10)
-    num_dots_high_r = np.random.randint(2, 12) * 10
+    num_dots_high_r = np.random.randint(num_dots_low_r+1, 12) * 10
+    num_dots_low_r = num_dots_low_r + 1
     # num_dots_high_r = np.arange(20, 120, 10)
 
     num_dots_low_s = np.random.randint(10, 16)
     # num_dots_low_s = np.arange(10, 16, 1)
-    num_dots_high_s = np.random.randint(11, 17)
+    num_dots_high_s = np.random.randint(num_dots_low_s+1, 17)
     # num_dots_high_s = np.arange(11, 17, 1)
     radius_dot_min_s_pos_dir = np.random.randint(3, 10)
     # radius_dot_min_s_pos_dir = np.arange(3, 10, 1)
-    radius_dot_max_s_pos_dir = np.random.randint(4, 11)
+    radius_dot_max_s_pos_dir = np.random.randint(radius_dot_min_s_pos_dir+1, 11)
     # radius_dot_max_s_pos_dir = np.arange(4, 11, 1)
     radius_dot_min_s_neg_dir = np.random.randint(3, 10)
     # radius_dot_min_s_neg_dir = np.arange(3, 10, 1)
-    radius_dot_max_s_neg_dir = np.random.randint(4, 11)
+    radius_dot_max_s_neg_dir = np.random.randint(radius_dot_min_s_neg_dir+1, 11)
     # radius_dot_max_s_neg_dir = np.arange(4, 11, 1)
 
         # param_str = '%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d' % (
@@ -620,7 +622,7 @@ def generation_loop_with_cnn(device_num=0):
     10, 11, 3, 4, 3, 4 
     
     '''
-    parameters = [2, 10, 20, 2, 10, 20, 10, 11, 3, 4, 3, 4]
+    # parameters = [2, 10, 20, 2, 10, 20, 10, 11, 3, 4, 3, 4]
     pv = config_pv(device_num)
     random_acc = 1/3
     val_acc = 1
@@ -629,6 +631,7 @@ def generation_loop_with_cnn(device_num=0):
     it = 1
     while val_acc > random_acc+e:
         opt_remove_dataset()
+        parameters = sample_params()
         make_dataset('train', 500, 30, 33, parameters)
         make_dataset('val', 200, 30, 33, parameters)
         val_acc = main_file.run(pv)
@@ -636,8 +639,6 @@ def generation_loop_with_cnn(device_num=0):
         if val_acc > random_acc+e:
             print('%d:  val_acc: %f. parameters tried: %s' % (it, val_acc, str(parameters)))
             save_results(val_acc, parameters)
-            # generate new parameters
-            parameters = sample_params()
         else:
             print('OPTIMAL PARAMETERS FOUND!')
             print('%d:  val_acc: %f. parameters: %s' % (it, val_acc, str(parameters)))

@@ -119,6 +119,8 @@ def run(project_variable):
     # ====================================================================================================
     # start with runs
     # ====================================================================================================
+    val_accuracy = None
+
     for num_runs in range(start, project_variable.repeat_experiments):
         if not project_variable.use_dali:
             if project_variable.same_training_data:
@@ -335,6 +337,7 @@ def run(project_variable):
                     if project_variable.early_stopping:
                         val_accuracy, val_loss = validation.run(project_variable, data, my_model, device)
                     else:
+                        print('!! val accuracy updated !!')
                         val_accuracy = validation.run(project_variable, data, my_model, device)
                 # ------------------------------------------------------------------------------------------------
                 # ------------------------------------------------------------------------------------------------
