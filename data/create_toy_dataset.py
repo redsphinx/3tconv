@@ -623,7 +623,7 @@ def generation_loop_with_cnn(device_num=0):
     
     '''
     # parameters = [2, 10, 20, 2, 10, 20, 10, 11, 3, 4, 3, 4]
-    pv = config_pv(device_num)
+
     random_acc = 1/3
     val_acc = 1
     e = 0.05
@@ -634,6 +634,7 @@ def generation_loop_with_cnn(device_num=0):
         parameters = sample_params()
         make_dataset('train', 500, 30, 33, parameters)
         make_dataset('val', 200, 30, 33, parameters)
+        pv = config_pv(device_num)
         val_acc = main_file.run(pv)
 
         if val_acc > random_acc+e:
@@ -648,3 +649,10 @@ def generation_loop_with_cnn(device_num=0):
 
 
 generation_loop_with_cnn(0)
+
+
+'''
+6,70,80,    5,3,30,     14,15,3,6,6,8,      0.527961
+8,70,110,   8,4,70,     15,16,5,7,9,10,     0.590461
+5,100,110,  3,3,30,     15,16,7,10,7,9,     0.597039
+'''

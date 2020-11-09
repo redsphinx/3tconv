@@ -448,8 +448,10 @@ def wait_for_gpu(wait, device_num=None, threshold=100):
     if wait:
         go = False
         while not go:
-            gpu_available = get_gpu_memory_map()
-            if gpu_available[device_num] < threshold:
+            gpu_in_use = get_gpu_memory_map()
+            gpu_available = 10989 - gpu_in_use[device_num]
+
+            if gpu_available > threshold:
                 go = True
             else:
                 now = datetime.now()
@@ -458,3 +460,6 @@ def wait_for_gpu(wait, device_num=None, threshold=100):
                 time.sleep(10)
     else:
         return
+
+# print('asf')
+# print(get_gpu_memory_map()[1])
