@@ -114,6 +114,7 @@ def parameterized_generate_dots(parameters, the_class, direction=None, speed=Non
     if the_class == 'translate':
         rad_dot_m_t, num_dots_low_t, num_dots_high_t = parameters
         # 2-10  10-100  20-110
+        # 6,70,80
 
         if speed is None:
             speed = 1
@@ -139,6 +140,7 @@ def parameterized_generate_dots(parameters, the_class, direction=None, speed=Non
 
     elif the_class == 'rotate':
         rad_dot_m_r, num_dots_low_r, num_dots_high_r = parameters
+        # 5,3,30
 
         full_side = int(np.sqrt(2 * window_side**2)) + 1
         # num_dots = np.random.randint(5, 11)
@@ -156,6 +158,7 @@ def parameterized_generate_dots(parameters, the_class, direction=None, speed=Non
     elif the_class == 'scale':
         num_dots_low_s, num_dots_high_s, radius_dot_min_s_pos_dir, radius_dot_max_s_pos_dir, radius_dot_min_s_neg_dir, \
         radius_dot_max_s_neg_dir = parameters
+        # 14,15,3,6,6,8
 
         if speed is None:
             speed = 1
@@ -554,38 +557,58 @@ def sample_params():
     # parameters_tried = np.genfromtxt(parameters_path, int, delimiter=',')[:, 0:-1]
     #
     # parameters_tried = list(parameters_tried)
-    
+
+    # 6,70,80   ,5,3,30,    14,15,3,6,6,8,         0.527961
+    # 7,70,90   ,4,4,50,    13,14,3,8,6,10,        0.527961
+
     # randomly choose parameters
     np.random.seed() # reset the seed
     # the_same = True
     # while the_same:
-    rad_dot_m_t = np.random.randint(2, 11)
+    # rad_dot_m_t = np.random.randint(2, 11) # it 1
+    rad_dot_m_t = np.random.randint(5, 8) # it 2
     # rad_dot_m_t = np.arange(2, 11, 1)
-    num_dots_low_t = np.random.randint(1, 11)
+    # num_dots_low_t = np.random.randint(1, 11) # it 1
+    num_dots_low_t = np.random.randint(6, 9) # it 2
     # num_dots_low_t = np.arange(10, 110, 10)
-    num_dots_high_t = np.random.randint(num_dots_low_t+1, 12) * 10
+    # num_dots_high_t = np.random.randint(num_dots_low_t+1, 12) * 10 # it 1
+    num_dots_high_t = np.random.randint(num_dots_low_t+1, 11) * 10 # it 2
     num_dots_low_t = num_dots_low_t * 10
     # num_dots_high_t = np.arange(20, 120, 10)
 
-    rad_dot_m_r = np.random.randint(2, 11)
+    # 6,70,80,    5,3,30,     14,15,3,6,6,8,      0.527961
+
+    # rad_dot_m_r = np.random.randint(2, 11) # it 1
+    rad_dot_m_r = np.random.randint(4, 7) # it 2
     # rad_dot_m_r = np.arange(2, 11, 1)
-    num_dots_low_r = np.random.randint(1, 11)
+    # num_dots_low_r = np.random.randint(1, 11) # it 1
+    num_dots_low_r = np.random.randint(2, 5) # it 2
     # num_dots_low_r = np.arange(10, 110, 10)
-    num_dots_high_r = np.random.randint(num_dots_low_r+1, 12) * 10
-    num_dots_low_r = num_dots_low_r + 1
+    # num_dots_high_r = np.random.randint(num_dots_low_r+1, 12) * 10 # it 1
+    num_dots_high_r = np.random.randint(num_dots_low_r+1, 6) * 10 # it 2
+    # num_dots_low_r = num_dots_low_r + 1  # it 2
+    num_dots_low_r = num_dots_low_r * 10  # it 3
     # num_dots_high_r = np.arange(20, 120, 10)
 
-    num_dots_low_s = np.random.randint(10, 16)
+    # 6,70,80,    5,3,30,     14,15,3,6,6,8,      0.527961
+
+    # num_dots_low_s = np.random.randint(10, 16) # it 1
+    num_dots_low_s = np.random.randint(13, 16) # it 2
     # num_dots_low_s = np.arange(10, 16, 1)
-    num_dots_high_s = np.random.randint(num_dots_low_s+1, 17)
+    # num_dots_high_s = np.random.randint(num_dots_low_s+1, 17) # it 1
+    num_dots_high_s = np.random.randint(num_dots_low_s+1, 18) # it 2
     # num_dots_high_s = np.arange(11, 17, 1)
-    radius_dot_min_s_pos_dir = np.random.randint(3, 10)
+    # radius_dot_min_s_pos_dir = np.random.randint(3, 10) # it 1
+    radius_dot_min_s_pos_dir = np.random.randint(2, 5) # it 2
     # radius_dot_min_s_pos_dir = np.arange(3, 10, 1)
-    radius_dot_max_s_pos_dir = np.random.randint(radius_dot_min_s_pos_dir+1, 11)
+    # radius_dot_max_s_pos_dir = np.random.randint(radius_dot_min_s_pos_dir+1, 11) # it 1
+    radius_dot_max_s_pos_dir = np.random.randint(radius_dot_min_s_pos_dir+1, 9) # it 2
     # radius_dot_max_s_pos_dir = np.arange(4, 11, 1)
-    radius_dot_min_s_neg_dir = np.random.randint(3, 10)
+    # radius_dot_min_s_neg_dir = np.random.randint(3, 10) # it 1
+    radius_dot_min_s_neg_dir = np.random.randint(5, 8) # it 2
     # radius_dot_min_s_neg_dir = np.arange(3, 10, 1)
-    radius_dot_max_s_neg_dir = np.random.randint(radius_dot_min_s_neg_dir+1, 11)
+    # radius_dot_max_s_neg_dir = np.random.randint(radius_dot_min_s_neg_dir+1, 11) # it 1
+    radius_dot_max_s_neg_dir = np.random.randint(radius_dot_min_s_neg_dir+1, 11) # it 2
     # radius_dot_max_s_neg_dir = np.arange(4, 11, 1)
 
         # param_str = '%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d' % (
@@ -648,11 +671,9 @@ def generation_loop_with_cnn(device_num=0):
         it = it + 1
 
 
-generation_loop_with_cnn(0)
+generation_loop_with_cnn(1)
 
 
 '''
 6,70,80,    5,3,30,     14,15,3,6,6,8,      0.527961
-8,70,110,   8,4,70,     15,16,5,7,9,10,     0.590461
-5,100,110,  3,3,30,     15,16,7,10,7,9,     0.597039
 '''
