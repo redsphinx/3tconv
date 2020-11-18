@@ -306,7 +306,7 @@ def e007_3T_kinetics():
     main_file.run(project_variable)
 
 
-# godel pts 19
+# lovelace
 def e008_3T_kinetics():
     set_init_1()
     project_variable.dataset = 'kinetics400'
@@ -315,9 +315,11 @@ def e008_3T_kinetics():
     project_variable.model_number = 23 # googlenet
     project_variable.experiment_number = 8
 
-    project_variable.device = 2
+    project_variable.device = 0
+    # project_variable.device = 1
     project_variable.end_epoch = 200
-    project_variable.batch_size = 17   # 5 about 3000
+    # project_variable.batch_size = 17   # 5 about 3000
+    project_variable.batch_size = 10   # 5 about 3000
     project_variable.batch_size_val_test = 29 # 30 about 3000
 
     # project_variable.inference_only_mode = True
@@ -343,7 +345,7 @@ def e008_3T_kinetics():
     project_variable.learning_rate = 0.00009
     project_variable.use_adaptive_lr = False
 
-    utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
+    # utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
     main_file.run(project_variable)
 
 
@@ -387,8 +389,8 @@ def e009_3T_kinetics():
     utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
     main_file.run(project_variable)
 
-# project_variable = ProjectVariable(debug_mode=True)
-project_variable = ProjectVariable(debug_mode=False)
+project_variable = ProjectVariable(debug_mode=True)
+# project_variable = ProjectVariable(debug_mode=False)
 
 
 # e001_3T_kinetics()
@@ -398,5 +400,5 @@ project_variable = ProjectVariable(debug_mode=False)
 # e005_3T_kinetics()
 # e006_3T_kinetics()
 # e007_3T_kinetics()
-# e008_3T_kinetics()
-e009_3T_kinetics()
+e008_3T_kinetics()
+# e009_3T_kinetics()

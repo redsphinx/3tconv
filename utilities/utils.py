@@ -463,3 +463,5 @@ def wait_for_gpu(wait, device_num=None, threshold=100):
 
 # print('asf')
 # print(get_gpu_memory_map()[1])
+
+# print('it works')

@@ -34,16 +34,19 @@ dots_dataset_frames = '/scratch/users/gabras/dots/dataset_frames'
 dots_samples = '/scratch/users/gabras/dots/samples'
 
 # Kinetics400
-kinetics400_dataset_150_224 = '/fast/gabras/kinetics400_downloader/dataset_150_224'
+
 
 # Kinetics400
-kinetics400_train = '/fast/gabras/kinetics400_downloader/dataset_150_224/train'
-kinetics400_val = '/fast/gabras/kinetics400_downloader/dataset_150_224/valid'
-kinetics400_test = '/fast/gabras/kinetics400_downloader/dataset_150_224/test'
-kinetics400_train_meta = '/fast/gabras/kinetics400_downloader/dataset_150_224/train_meta_class_filelist.txt'
-kinetics400_val_meta = '/fast/gabras/kinetics400_downloader/dataset_150_224/valid_meta_class_filelist.txt'
+# rename /fast/ to /scratch/users
+kinetics400_dataset_150_224 = '/scratch/users/gabras/kinetics400_downloader/dataset_150_224'
+kinetics400_train = '/scratch/users/gabras/kinetics400_downloader/dataset_150_224/train'
+kinetics400_val = '/scratch/users/gabras/kinetics400_downloader/dataset_150_224/valid'
+kinetics400_test = '/scratch/users/gabras/kinetics400_downloader/dataset_150_224/test'
+kinetics400_train_meta = '/scratch/users/gabras/kinetics400_downloader/dataset_150_224/train_meta_class_filelist.txt'
+kinetics400_val_meta = '/scratch/users/gabras/kinetics400_downloader/dataset_150_224/valid_meta_class_filelist.txt'
 
-
+# symbolic link on erdi:   /huge -> /disks/big
+# symbolic link on erdi:   /scratch/users -> /disks/big
 
 # todo: IMPORTANT: DO NOT CHANGE EXISTING PATHS. SHIT WILL BE DELETED.
 # todo: IF YOU REALLY REALLY WANT TO, MAKE SURE WRITER_PATH IS VALID -> see main_file.py
