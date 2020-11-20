@@ -1,4 +1,6 @@
 # This is a toy dataset with 3 classes so that we can validate 3TConv
+# This is the multiple dots vesion
+
 from tqdm import tqdm
 import numpy as np
 import os

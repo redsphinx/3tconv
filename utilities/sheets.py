@@ -7,6 +7,7 @@ from google.auth.transport.requests import Request
 from datetime import date, datetime
 
 
+# on erdi server, setup ymbbolic link /home/gabras -> /home/gabi
 SPREADSHEET_ID = '1p8S73Li52kqmi9NO-eJMOjnLbkVud9jMQ7PXxoTI2jA'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CREDENTIALS_JSON = '/home/gabras/credentials.json'

@@ -306,7 +306,7 @@ def e007_3T_kinetics():
     main_file.run(project_variable)
 
 
-# lovelace
+# erdi
 def e008_3T_kinetics():
     set_init_1()
     project_variable.dataset = 'kinetics400'
@@ -316,49 +316,6 @@ def e008_3T_kinetics():
     project_variable.experiment_number = 8
 
     project_variable.device = 0
-    # project_variable.device = 1
-    project_variable.end_epoch = 200
-    # project_variable.batch_size = 17   # 5 about 3000
-    project_variable.batch_size = 10   # 5 about 3000
-    project_variable.batch_size_val_test = 29 # 30 about 3000
-
-    # project_variable.inference_only_mode = True
-    project_variable.inference_only_mode = False
-    # project_variable.eval_on = 'test'
-    project_variable.eval_on = 'val'
-
-
-    # project_variable.load_model = True # loading pre-trained on ImageNet
-    project_variable.load_model = [6, 23, 7, 0]
-
-    project_variable.load_from_fast = True
-
-    project_variable.use_dali = True
-    project_variable.dali_workers = 32
-    project_variable.dali_iterator_size = ['all', 'all', 0]
-    project_variable.nas = False
-
-    project_variable.stop_at_collapse = True
-    project_variable.early_stopping = True
-
-    project_variable.optimizer = 'adam'
-    project_variable.learning_rate = 0.00009
-    project_variable.use_adaptive_lr = False
-
-    # utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
-    main_file.run(project_variable)
-
-
-# godel pts 20
-def e009_3T_kinetics():
-    set_init_1()
-    project_variable.dataset = 'kinetics400'
-    project_variable.label_size = 400
-
-    project_variable.model_number = 23 # googlenet
-    project_variable.experiment_number = 9
-
-    project_variable.device = 1
     project_variable.end_epoch = 200
     project_variable.batch_size = 17   # 5 about 3000
     project_variable.batch_size_val_test = 29 # 30 about 3000
@@ -383,14 +340,98 @@ def e009_3T_kinetics():
     project_variable.early_stopping = True
 
     project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.00009
+    project_variable.use_adaptive_lr = True
+
+    # utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
+    main_file.run(project_variable)
+
+
+# lovelace pts 48
+def e009_3T_kinetics():
+    set_init_1()
+    project_variable.dataset = 'kinetics400'
+    project_variable.label_size = 400
+
+    project_variable.model_number = 23 # googlenet
+    project_variable.experiment_number = 9
+
+    project_variable.device = 1
+    project_variable.end_epoch = 200
+    project_variable.batch_size = 17   # 5 about 3000
+    # project_variable.batch_size = 10   # 5 about 3000
+    project_variable.batch_size_val_test = 29 # 30 about 3000
+
+    # project_variable.inference_only_mode = True
+    project_variable.inference_only_mode = False
+    # project_variable.eval_on = 'test'
+    project_variable.eval_on = 'val'
+
+
+    # project_variable.load_model = True # loading pre-trained on ImageNet
+    project_variable.load_model = [6, 23, 7, 0]
+
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
     project_variable.learning_rate = 0.00007
-    project_variable.use_adaptive_lr = False
+    project_variable.use_adaptive_lr = True
 
     utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
     main_file.run(project_variable)
 
-project_variable = ProjectVariable(debug_mode=True)
-# project_variable = ProjectVariable(debug_mode=False)
+
+# erdi
+def e010_3T_kinetics():
+    set_init_1()
+    project_variable.dataset = 'kinetics400'
+    project_variable.label_size = 400
+
+    project_variable.model_number = 23 # googlenet
+    project_variable.experiment_number = 10
+
+    project_variable.device = 0
+    project_variable.end_epoch = 200
+    project_variable.batch_size = 17   # 5 about 3000
+    project_variable.batch_size_val_test = 29 # 30 about 3000
+
+    # project_variable.inference_only_mode = True
+    project_variable.inference_only_mode = False
+    # project_variable.eval_on = 'test'
+    project_variable.eval_on = 'val'
+
+
+    # project_variable.load_model = True # loading pre-trained on ImageNet
+    project_variable.load_model = [8, 23, 7, 0]
+
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.00009
+    project_variable.use_adaptive_lr = True
+
+    # utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
+    main_file.run(project_variable)
+
+
+# project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
 
 
 # e001_3T_kinetics()
@@ -400,5 +441,6 @@ project_variable = ProjectVariable(debug_mode=True)
 # e005_3T_kinetics()
 # e006_3T_kinetics()
 # e007_3T_kinetics()
-e008_3T_kinetics()
+# e008_3T_kinetics()
 # e009_3T_kinetics()
+e010_3T_kinetics()
