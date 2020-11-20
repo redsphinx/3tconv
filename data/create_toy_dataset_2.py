@@ -21,31 +21,51 @@ from running import main_file
 import utilities.utils as U
 
 
-def generate_single_dot_w_hat(seed, side=200):
+MARGIN = 5
+SIDE = 200
+
+def generate_single_dot_w_hat(the_class, seed, side=200):
     '''
     generates a single dot with a hat at a random position
     applies random scale, translation and rotation
     '''
     np.random.seed(seed)
 
-    lower = 20
-    upper = 60
+    if the_class == 'scale':
+        lower = 20
+        upper = 110
+        # scale: 30 each side extra
+    else:
+        lower = 20
+        upper = 170
 
     size_dot = np.random.randint(lower, upper)
-    loc_x = np.random.randint(upper, side-upper)
-    loc_y = np.random.randint(upper, side-upper)
+
+    # loc_x = np.random.randint(upper, side-upper)
+    # loc_y = np.random.randint(upper, side-upper)
+    loc_x = (SIDE - size_dot) // 2
+    loc_y = (SIDE - size_dot) // 2
 
     image = Image.new('L', (side, side))
     canvas = ImageDraw.Draw(image)
     canvas.ellipse((loc_x, loc_y, loc_x+size_dot, loc_y+size_dot), fill='white')
-    canvas.regular_polygon((loc_x, loc_y, size_dot//2), 3, -75, 'white')
+    triangle_radius = size_dot // 5
+    # canvas.regular_polygon((loc_x, loc_y, size_dot//5), 3, -75, 'white')
+    canvas.regular_polygon((loc_x+size_dot//2, loc_y, triangle_radius), 3, fill='white')
+
+
+    frame_save_path = os.path.join(PP.dots_samples, 'dotwhat1.jpg')
+    image.save(frame_save_path)
 
     # rotate
-    angle = np.random.randint(0, 361)
+    angle = np.random.randint(0, 360)
     direction = np.random.randint(0, 2)
     if direction == 0:
         direction = -1
     image_rot = image.rotate(direction*angle, resample=Image.BILINEAR)
+
+    frame_save_path = os.path.join(PP.dots_samples, 'dotwhat2.jpg')
+    image_rot.save(frame_save_path)
 
     # scale
     scale_amount = np.random.randint(1, 6)
@@ -55,16 +75,38 @@ def generate_single_dot_w_hat(seed, side=200):
         frame = frame.crop((0+scale_amount, 0+scale_amount, side-scale_amount, side-scale_amount))
     else:
         frame = image_rot.crop((0+scale_amount, 0+scale_amount, side-scale_amount, side-scale_amount))
-        frame = frame.resize((side, side), Image.BILINEAR)
 
-    bbox = frame.getbbox()
+    frame = frame.resize((side, side), Image.BILINEAR)
+
+    frame_save_path = os.path.join(PP.dots_samples, 'dotwhat3.jpg')
+    frame.save(frame_save_path)
+
+    bbox = list(frame.getbbox())
+
+    dot_w_hat = frame.crop(bbox)
+    dot_w, dot_h = dot_w_hat.size
+    max_dim = max(dot_w, dot_h)
+    square = Image.new('L', (max_dim, max_dim))
+    offset = ((max_dim - dot_w) // 2, (max_dim - dot_h) // 2)
+    square.paste(dot_w_hat, offset)
+
+    # if max_dim == dot_w:
+    #     bbox[1] = bbox[1] - offset[1]
+    #     bbox[3] = bbox[3] + offset[1]
+    # elif max_dim == dot_h:
+    #     bbox[0] = bbox[0] - offset[0]
+    #     bbox[2] = bbox[2] + offset[0]
 
     # save sample
     # frame_save_path = os.path.join(PP.dots_samples, 'dot_hat_%d_%d_%d_%d.jpg' % (loc_x, loc_y, angle, scale_amount))
-    # frame.save(frame_save_path)
+    frame_save_path = os.path.join(PP.dots_samples, 'dot_hat_square.jpg')
+    square.save(frame_save_path)
 
-    return frame, bbox
+    # bbox = tuple(bbox)
 
+    return square
+
+# generate_single_dot_w_hat(8)
 
 def generate_sequence(the_class, num_frames, seed, window_side=200, cropped=32):
     '''
@@ -74,10 +116,20 @@ def generate_sequence(the_class, num_frames, seed, window_side=200, cropped=32):
     '''
 
     np.random.seed(seed)
+    dot_w_hat = generate_single_dot_w_hat(the_class, seed)
+    margin = 5
+    dot_w, dot_h = dot_w_hat.size
+    bbox = [0, 0, 0, 0]
 
     annotation, direction, direction_ver, direction_hor, speed = None, None, 0, 0, None
 
     if the_class == 'translate':
+
+        # sample starting location
+        bbox[0] = np.random.randint(MARGIN, window_side-dot_w-MARGIN)
+        bbox[1] = np.random.randint(MARGIN, window_side-dot_h-MARGIN)
+        bbox[2] = bbox[0] + dot_w
+        bbox[3] = bbox[1] + dot_h
 
         direction_hor = np.random.randint(-1, 2)
         if direction_hor == 0:
@@ -90,6 +142,11 @@ def generate_sequence(the_class, num_frames, seed, window_side=200, cropped=32):
         annotation = [seed, direction_hor, direction_ver, speed]
 
     elif the_class == 'rotate':
+        bbox[0] = np.random.randint(MARGIN, window_side-dot_w-MARGIN)
+        bbox[1] = np.random.randint(MARGIN, window_side-dot_h-MARGIN)
+        bbox[2] = bbox[0] + dot_w
+        bbox[3] = bbox[1] + dot_h
+
         direction = np.random.randint(0, 2)
         if direction == 0:
             direction = -1
@@ -98,39 +155,92 @@ def generate_sequence(the_class, num_frames, seed, window_side=200, cropped=32):
         annotation = [seed, direction, direction, speed]
 
     elif the_class == 'scale':
-        direction = np.random.randint(0, 2)
-        if direction == 0:
+
+        if num_frames*2 + dot_w > window_side - margin*2:
+            # too big
             direction = -1
-        speed = np.random.randint(1, 3)
+            pass
+        elif dot_w - num_frames*2 < margin*2:
+            # too small
+            direction = 1
+        else:
+            direction = np.random.randint(0, 2)
+            if direction == 0:
+                direction = -1
+
+
+        if direction == 1:
+            bbox[0] = np.random.randint(MARGIN+num_frames, window_side-dot_w-MARGIN-num_frames)
+            bbox[1] = np.random.randint(MARGIN+num_frames, window_side-dot_h-MARGIN-num_frames)
+            bbox[2] = bbox[0] + dot_w
+            bbox[3] = bbox[1] + dot_h
+        else:
+            bbox[0] = np.random.randint(MARGIN, window_side-dot_w-MARGIN)
+            bbox[1] = np.random.randint(MARGIN, window_side-dot_h-MARGIN)
+            bbox[2] = bbox[0] + dot_w
+            bbox[3] = bbox[1] + dot_h
+
+        speed = 1
+        # speed = np.random.randint(1, 3)
         # print('%s: direction: %d, speed: %d' % (the_class, direction, speed))
         annotation = [seed, direction, direction, speed]
 
     else:
         print('error: class not recognized')
 
-
-    dot_w_hat, bbox = generate_single_dot_w_hat(seed)
-    
-
-    '''
-    for each transformation
-        if scale
-        also determine the speed and direction of scaling depending on the initial size of the dot
-        depending on the lower and upper bound of the dot sizes        
-        if translate, if it hits a boundary, change the direction
-        make sure that the white does not overlap with a boundary
-        crop to windowsize
-    '''
-
     all_frames_in_sequence = np.zeros((num_frames, cropped, cropped), dtype=np.uint8)
+    black_image = Image.new('L', (window_side, window_side))
 
 
+    if the_class == 'translate':
+        previous_location = bbox
+        for f in range(num_frames):
+            base_image = black_image
+            left = speed * direction_hor + previous_location[0]
+            up = speed * direction_ver + previous_location[1]
+            right = speed * direction_hor + previous_location[2]
+            down = speed * direction_ver + previous_location[3]
+
+            if left < margin or right > window_side+margin:
+                direction_hor = direction_hor * -1
+                left = speed * direction_hor + previous_location[0]
+                right = speed * direction_hor + previous_location[2]
+
+            if up < margin or down > window_side+margin:
+                direction_ver = direction_ver * -1
+                up = speed * direction_ver + previous_location[1]
+                down = speed * direction_ver + previous_location[3]
+
+            previous_location = (left, up, right, down)
+            base_image.paste(dot_w_hat, (previous_location[0], previous_location[1]))
+            frame = base_image.resize((cropped, cropped), Image.BILINEAR)
+            all_frames_in_sequence[f] = np.array(frame)
+            
+    elif the_class == 'rotate':
+
+        for f in range(num_frames):
+            base_image = black_image
+
+            dot_w_hat_rot = dot_w_hat.rotate(f*direction*speed, resample=Image.BILINEAR)
+            base_image.paste(dot_w_hat_rot, (bbox[0], bbox[1]))
+            frame = base_image.resize((cropped, cropped), Image.BILINEAR)
+            all_frames_in_sequence[f] = np.array(frame)
+
+    elif the_class == 'scale':
+
+        for f in range(num_frames):
+            base_image = black_image
+            dot_w_hat_sc = dot_w_hat.resize((dot_w + direction*f, dot_h + direction*f), Image.BILINEAR)
+            offset = ((bbox[0]-direction*f), (bbox[1]-direction*f))
+
+            base_image.paste(dot_w_hat_sc, offset)
+            frame = base_image.resize((cropped, cropped), Image.BILINEAR)
+            all_frames_in_sequence[f] = np.array(frame)
+
+    return all_frames_in_sequence, annotation
 
 
-    pass
-
-
-def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None):
+def make_dataset(which, num_samples_per_class, num_frames, crop_side):
 
     print('which: %s' % which)
 
@@ -156,21 +266,6 @@ def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None
     for i, c in enumerate(classes):
         print('class: %s' % c)
 
-        if parameters is not None:
-            if c == 'translate':
-                params = parameters[0:3]
-            elif c == 'rotate':
-                params = parameters[3:6]
-            elif c == 'scale':
-                params = parameters[6:]
-            else:
-                print('this is a weird class %s' % c)
-                params = None
-
-        else:
-            params = None
-
-
         np.random.seed(class_seeds[i])
         video_seeds = np.random.randint(0, 1000000, num_samples_per_class)
 
@@ -181,7 +276,8 @@ def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None
 
         # for s in tqdm(range(num_samples_per_class)):
         for s in range(num_samples_per_class):
-            all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], side, parameters=params)
+            all_frames_array, annotation = generate_sequence(c, num_frames, video_seeds[s], 200, crop_side)
+            # all_frames_array, annotation = generate_sequence_dots(c, num_frames, video_seeds[s], side, parameters=params)
             choose_frame = np.random.randint(0, num_frames)
             frame = all_frames_array[choose_frame]
 
@@ -217,3 +313,9 @@ def make_dataset(which, num_samples_per_class, num_frames, side, parameters=None
                 line = '%s,%s,%d\n' % (vid, c, choose_frame)
                 my_file.write(line)
 
+
+which = 'train'
+num_samples_per_class = 3
+num_frames = 30
+crop_side = 33
+make_dataset(which, num_samples_per_class, num_frames, crop_side)
