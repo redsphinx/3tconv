@@ -33,11 +33,11 @@ def generate_single_dot_w_hat(the_class, seed, side=200):
 
     if the_class == 'scale':
         lower = 20
-        upper = 110
+        upper = 90
         # scale: 30 each side extra
     else:
         lower = 20
-        upper = 170
+        upper = 150
 
     size_dot = np.random.randint(lower, upper)
 
@@ -102,9 +102,15 @@ def generate_single_dot_w_hat(the_class, seed, side=200):
     frame_save_path = os.path.join(PP.dots_samples, 'dot_hat_square.jpg')
     square.save(frame_save_path)
 
+    dot_w, dot_h = square.size
+
+    bigger = Image.new('L', (side, side))
+    offset = ((side - dot_w) // 2, (side - dot_h) // 2)
+    bigger.paste(dot_w_hat, offset)
+
     # bbox = tuple(bbox)
 
-    return square
+    return bigger, dot_w, dot_h, offset
 
 # generate_single_dot_w_hat(8)
 
@@ -114,11 +120,11 @@ def generate_sequence(the_class, num_frames, seed, window_side=200, cropped=32):
     applies transformations to base
     saves sequence
     '''
-
+    # TODO: adjust bbox according to paste offset
     np.random.seed(seed)
-    dot_w_hat = generate_single_dot_w_hat(the_class, seed)
+    dot_w_hat, dot_w, dot_h, paste_offset = generate_single_dot_w_hat(the_class, seed)
     margin = 5
-    dot_w, dot_h = dot_w_hat.size
+    # dot_w, dot_h = dot_w_hat.size
     bbox = [0, 0, 0, 0]
 
     annotation, direction, direction_ver, direction_hor, speed = None, None, 0, 0, None
@@ -201,12 +207,12 @@ def generate_sequence(the_class, num_frames, seed, window_side=200, cropped=32):
             right = speed * direction_hor + previous_location[2]
             down = speed * direction_ver + previous_location[3]
 
-            if left < margin or right > window_side+margin:
+            if left < margin or right > window_side-margin:
                 direction_hor = direction_hor * -1
                 left = speed * direction_hor + previous_location[0]
                 right = speed * direction_hor + previous_location[2]
 
-            if up < margin or down > window_side+margin:
+            if up < margin or down > window_side-margin:
                 direction_ver = direction_ver * -1
                 up = speed * direction_ver + previous_location[1]
                 down = speed * direction_ver + previous_location[3]
@@ -223,8 +229,19 @@ def generate_sequence(the_class, num_frames, seed, window_side=200, cropped=32):
 
             dot_w_hat_rot = dot_w_hat.rotate(f*direction*speed, resample=Image.BILINEAR)
             base_image.paste(dot_w_hat_rot, (bbox[0], bbox[1]))
+
+            if f in [0, 15, 29]:
+                frame_save_path = os.path.join(PP.dots_samples, 'rotate_%d_paste.jpg' % f)
+                base_image.save(frame_save_path)
+
             frame = base_image.resize((cropped, cropped), Image.BILINEAR)
             all_frames_in_sequence[f] = np.array(frame)
+
+            if f in [0, 15, 29]:
+                frame_save_path = os.path.join(PP.dots_samples, 'rotate_%d_crop.jpg' % f)
+                frame.save(frame_save_path)
+
+        print('')
 
     elif the_class == 'scale':
 
