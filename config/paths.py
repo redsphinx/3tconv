@@ -21,11 +21,11 @@ jester_frames = '/scratch/users/gabras/jester/frames.txt'
 jester_zero = '/scratch/users/gabras/jester/zero.txt'
 
 # UCF101
-ucf101_root = '/fast/gabras/ucf101/og_data'
-ucf101_annotations = '/fast/gabras/ucf101/og_labels'
-ucf101_168_224_train = '/fast/gabras/ucf101/data_168_224/train'
-ucf101_168_224_test = '/fast/gabras/ucf101/data_168_224/test'
-ucf101_168_224_xai = '/fast/gabras/ucf101/data_168_224/xai'
+ucf101_root = '/scratch/users/gabras/ucf101/og_data'
+ucf101_annotations = '/scratch/users/gabras/ucf101/og_labels'
+ucf101_168_224_train = '/scratch/users/gabras/ucf101/data_168_224/train'
+ucf101_168_224_test = '/scratch/users/gabras/ucf101/data_168_224/test'
+ucf101_168_224_xai = '/scratch/users/gabras/ucf101/data_168_224/xai'
 
 # dots toy dataset
 dots_root = '/scratch/users/gabras/dots'

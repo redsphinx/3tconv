@@ -130,10 +130,32 @@ def get_model(project_variable):
             # copying from model trained on kinetics400_metaclass
             # copy all but last layer
 
-            if ex in [6]:
-                print('loading pre-pre-trained kinetics400 model from experiment 6')
+            if project_variable.load_model == [6, 23, 7, 0]:
+                print('loading pre-pre-trained kinetics400 metaclass model from experiment 6')
                 original_label_size = project_variable.label_size
                 project_variable.label_size = 39
+                tmp_googlenet = Googlenet3TConv_explicit(project_variable)
+                tmp_googlenet.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+                # copy the fc's from model to this so that they are random
+
+                tmp_googlenet.fc2 = model.fc2
+                # tmp_googlenet.fc2.bias = model.fc2.bias
+
+                tmp_googlenet.fc4 = model.fc4
+                # tmp_googlenet.fc4.bias = model.fc4.bias
+
+                tmp_googlenet.fc5 = model.fc5
+                # tmp_googlenet.fc5.bias = model.fc5.bias
+
+                # set model = tmp_googlenet
+                model = tmp_googlenet
+                # restore original label size
+                project_variable.label_size = original_label_size
+
+            elif project_variable.load_model == [1, 23, 4, 0]:
+                print('loading from model pre-trained on kinetics400')
+                original_label_size = project_variable.label_size
+                project_variable.label_size = 400
                 tmp_googlenet = Googlenet3TConv_explicit(project_variable)
                 tmp_googlenet.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
                 # copy the fc's from model to this so that they are random

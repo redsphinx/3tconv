@@ -443,4 +443,5 @@ project_variable = ProjectVariable(debug_mode=False)
 # e007_3T_kinetics()
 # e008_3T_kinetics()
 # e009_3T_kinetics()
-e010_3T_kinetics()
+# e010_3T_kinetics()
+

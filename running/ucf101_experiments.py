@@ -293,9 +293,70 @@ def e1011_3T_ucf101():
 
     main_file.run(project_variable)
 
-project_variable = ProjectVariable(debug_mode=True)
+
+def e1012_3T_ucf101():
+    set_init_1()
+    project_variable.model_number = 23
+    project_variable.experiment_number = 1012
+    project_variable.sheet_number = 23
+    project_variable.device = 1
+    project_variable.end_epoch = 100
+    project_variable.batch_size = 15
+    project_variable.batch_size_val_test = 15
+
+    project_variable.load_model = [1, 23, 4, 0]  # exp, model, epoch, run
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.00001
+    project_variable.use_adaptive_lr = True
+
+    utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
+    main_file.run(project_variable)
+
+
+def e1013_3T_ucf101():
+    set_init_1()
+    project_variable.model_number = 23
+    project_variable.experiment_number = 1013
+    project_variable.sheet_number = 23
+    project_variable.device = 1
+    project_variable.end_epoch = 100
+    project_variable.batch_size = 15
+    project_variable.batch_size_val_test = 15
+
+    project_variable.load_model = [1, 23, 4, 0]  # exp, model, epoch, run
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.000005
+    project_variable.use_adaptive_lr = True
+
+    utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
+    main_file.run(project_variable)
+
+# project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
+
 
 
 # e1010_3T_ucf101()
 # e1011_3T_ucf101()
-
+# e1012_3T_ucf101()
+e1013_3T_ucf101()
