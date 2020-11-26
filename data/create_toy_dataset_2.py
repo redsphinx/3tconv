@@ -352,7 +352,7 @@ def make_dataset(which, num_samples_per_class, num_frames, crop_side, save_data=
             frame_dot_size = ((d_bbox[2] - d_bbox[0]) + (d_bbox[3] - d_bbox[1])) // 2
             dot_size_array[i, s] = frame_dot_size
 
-        if save_data:
+            if save_data:
                 frame = all_frames_array[choose_frame]
 
                 # save avi
@@ -366,6 +366,7 @@ def make_dataset(which, num_samples_per_class, num_frames, crop_side, save_data=
                 vid = '%05d' % (num + 1)
                 avi_save_path = os.path.join(avi_class_path, '%s.avi' % vid)
                 skvid.vwrite(avi_save_path, all_frames_array)
+                print(s, avi_save_path)
 
                 # ----
                 # for debugging
@@ -407,21 +408,27 @@ def make_dataset(which, num_samples_per_class, num_frames, crop_side, save_data=
 
             # plt.figure()
             plt.hist(data, 20)
-            plot_path = os.path.join(PP.dots_samples, 'hist_%s_dot_size.jpg' % c)
+            plot_path = os.path.join(PP.dots_samples, '%s_hist_%s_dot_size.jpg' % (which, c))
             plt.xlabel('dot_size')
             plt.ylabel('amount')
-            plt.title('%s histogram of dot sizes' % c)
+            plt.title('%s %s histogram of dot sizes' % (which, c))
             plt.grid(True)
 
             plt.savefig(plot_path)
 
 
 
+# train = 1000
+# val = 500
 
-which = 'train'
-num_samples_per_class = 1000
 num_frames = 15
 crop_side = 33
+
+which = 'val'
+num_samples_per_class = 1000
 make_dataset(which, num_samples_per_class, num_frames, crop_side, save_data=True)
 
+which = 'train'
+num_samples_per_class = 3000
+make_dataset(which, num_samples_per_class, num_frames, crop_side, save_data=True)
 

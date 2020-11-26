@@ -64,9 +64,10 @@ def e001_dots():
 
 def e002_dots():
     set_init_1_frames()
-    project_variable.dataset = 'dots_avi'
+    project_variable.dataset = 'dots_frames'
     # project_variable.dataset = 'ucf101'
-    project_variable.model_number = 56 # lenet5 3t
+    # project_variable.model_number = 56 # lenet5 3t
+    project_variable.model_number = 55 # lenet5 2D
     project_variable.experiment_number = 2
 
     project_variable.device = 0
@@ -74,8 +75,8 @@ def e002_dots():
     project_variable.batch_size = 32
     project_variable.batch_size_val_test = 32
 
-    project_variable.inference_only_mode = True
-    # project_variable.inference_only_mode = False
+    # project_variable.inference_only_mode = True
+    project_variable.inference_only_mode = False
 
     project_variable.load_model = False # loading model from scratch
     # project_variable.load_from_fast = True  # UNUSED?
@@ -85,20 +86,99 @@ def e002_dots():
     project_variable.dali_iterator_size = ['all', 'all', 0]
     project_variable.nas = False
 
-    project_variable.stop_at_collapse = True
-    # project_variable.stop_at_collapse = False
-    project_variable.early_stopping = True
+    # project_variable.stop_at_collapse = True
+    project_variable.stop_at_collapse = False
+    # project_variable.early_stopping = True
+    project_variable.early_stopping = False
 
     project_variable.optimizer = 'adam'
     # project_variable.learning_rate = 0.05
-    project_variable.learning_rate = 0.001
+    project_variable.learning_rate = 0.0005
     project_variable.use_adaptive_lr = True
 
     main_file.run(project_variable)
 
 
-project_variable = ProjectVariable(debug_mode=True)
-# project_variable = ProjectVariable(debug_mode=False)
+def e003_dots():
+    set_init_1_frames()
+    project_variable.dataset = 'dots_avi'
+    # project_variable.dataset = 'ucf101'
+    project_variable.model_number = 56 # lenet5 3t
+    # project_variable.model_number = 55 # lenet5 2D
+    project_variable.experiment_number = 3
+    project_variable.load_num_frames = 15
 
-e001_dots()
+    project_variable.device = 0
+    project_variable.end_epoch = 10
+    project_variable.batch_size = 32
+    project_variable.batch_size_val_test = 32
+
+    # project_variable.inference_only_mode = True
+    project_variable.inference_only_mode = False
+
+    project_variable.load_model = False # loading model from scratch
+    # project_variable.load_from_fast = True  # UNUSED?
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    # project_variable.stop_at_collapse = True
+    project_variable.stop_at_collapse = False
+    # project_variable.early_stopping = True
+    project_variable.early_stopping = False
+
+    project_variable.optimizer = 'adam'
+    # project_variable.learning_rate = 0.05
+    project_variable.learning_rate = 0.00001
+    project_variable.use_adaptive_lr = True
+
+    main_file.run(project_variable)
+
+
+def e004_dots():
+    set_init_1_frames()
+    project_variable.dataset = 'dots_avi'
+    # project_variable.dataset = 'ucf101'
+    project_variable.model_number = 56 # lenet5 3t
+    # project_variable.model_number = 55 # lenet5 2D
+    project_variable.experiment_number = 4
+    project_variable.load_num_frames = 15
+
+    project_variable.device = 0
+    project_variable.end_epoch = 100
+    project_variable.batch_size = 32
+    project_variable.batch_size_val_test = 32
+
+    # project_variable.inference_only_mode = True
+    project_variable.inference_only_mode = False
+
+    project_variable.load_model = False # loading model from scratch
+    # project_variable.load_from_fast = True  # UNUSED?
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    # project_variable.stop_at_collapse = True
+    project_variable.stop_at_collapse = False
+    # project_variable.early_stopping = True
+    project_variable.early_stopping = False
+
+    project_variable.optimizer = 'adam'
+    # project_variable.learning_rate = 0.05
+    project_variable.learning_rate = 0.00005
+    project_variable.use_adaptive_lr = True
+
+    main_file.run(project_variable)
+
+
+# project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
+
+# e001_dots()
 # e002_dots()
+# e003_dots()
+e004_dots()

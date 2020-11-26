@@ -88,7 +88,7 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
 
             my_optimizer.zero_grad()
 
-            if project_variable.model_number in [20, 51, 53]:
+            if project_variable.model_number in [20, 51, 53, 56]:
                 predictions = my_model(data, device)
             elif project_variable.model_number in [23]:
                 aux1, aux2, predictions = my_model(data, device)

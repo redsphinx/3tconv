@@ -855,7 +855,7 @@ def get_iterator(which, project_variable):
         p_val = os.path.join(PP.dots_dataset_avi, 'val')
         p_test = os.path.join(PP.dots_dataset_avi, 'test')
         p_xai = None
-        channels = 3
+        channels = 1
         iterator = get_file_root_iterator(which, project_variable, p_train, p_val, p_test, p_xai, channels)
 
     elif project_variable.dataset == 'dots_frames':
