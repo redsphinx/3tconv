@@ -170,23 +170,34 @@ def experiment_runs_statistics(experiment, model, mode='test'):
         name = 'experiment_%d_model_%d_run' % (experiment, model)
         runs = sum([name in j for j in os.listdir(folder_path)])
 
-        for j in range(runs):
-            file_path = os.path.join(folder_path, '%s_%d.txt' % (name, j))
-            if os.path.exists(file_path):
-                # file_path = os.path.join(folder_path, '%s_%d.txt' % (name, j) )
-                data = np.genfromtxt(file_path, str, delimiter=',')
-                if len(data.shape) == 1:
-                    acc.append(float(data[1]))
-                else:
-                    acc.append(float(data[-1][1]))
+        if runs == 1:
+            log_path = os.path.join(PP.saving_data, i, 'experiment_%d_model_%d_run_0.txt' % (experiment, model))
+            accuracies = np.genfromtxt(log_path, float, delimiter=',')
+            best_epoch_index = np.argmax(accuracies[:, 1])
 
-        # print('%s   mean: %f    std: %f     runs: %d    best run: %d' % (i, np.mean(acc), np.std(acc), runs,
-        #                                                                  acc.index(max(acc))))
+            test_acc = accuracies[best_epoch_index, 1]
+            test_best = 0
+            test_std = np.std(accuracies[:, 1])
 
-        if i == mode:
-            test_acc = np.mean(acc)
-            test_std = np.std(acc)
-            test_best = acc.index(max(acc))
+        else:
+
+            for j in range(runs):
+                file_path = os.path.join(folder_path, '%s_%d.txt' % (name, j))
+                if os.path.exists(file_path):
+                    # file_path = os.path.join(folder_path, '%s_%d.txt' % (name, j) )
+                    data = np.genfromtxt(file_path, str, delimiter=',')
+                    if len(data.shape) == 1:
+                        acc.append(float(data[1]))
+                    else:
+                        acc.append(float(data[-1][1]))
+
+            # print('%s   mean: %f    std: %f     runs: %d    best run: %d' % (i, np.mean(acc), np.std(acc), runs,
+            #                                                                  acc.index(max(acc))))
+
+            if i == mode:
+                test_acc = np.mean(acc)
+                test_std = np.std(acc)
+                test_best = acc.index(max(acc))
 
     return test_acc, test_std, test_best
 
@@ -234,7 +245,7 @@ def delete_runs(project_variable, except_run):
 
     # keep only the best epoch from the best run if stop_at_collapse or early_stopping
     # if not using these settings, only the end epoch will be saved, there will be nothing else to delete
-    if project_variable.stop_at_collapse or project_variable.early_stopping:
+    if project_variable.stop_at_collapse or project_variable.early_stopping or project_variable.save_all_models:
         # get the best epoch from the logs
         val_log_path = os.path.join(PP.saving_data, 'val', 'experiment_%d_model_%d_run_%d.txt' %
                                     (project_variable.experiment_number, project_variable.model_number, except_run))

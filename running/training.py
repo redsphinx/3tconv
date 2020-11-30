@@ -154,7 +154,8 @@ def run(project_variable, all_data, my_model, my_optimizer, device):
 
     # save model
     if project_variable.save_model:
-        if project_variable.stop_at_collapse or project_variable.early_stopping:
+        if project_variable.stop_at_collapse or project_variable.early_stopping or \
+                project_variable.save_all_models:
             saving.save_model(project_variable, my_model)
 
         else:

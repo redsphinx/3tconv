@@ -473,3 +473,11 @@ def run(project_variable):
 
     if project_variable.dots_mode:
         return val_accuracy
+
+# from config.base_config import ProjectVariable
+# project_variable = ProjectVariable(debug_mode=True)
+# project_variable.experiment_number = 1014
+# project_variable.model_number = 23
+# project_variable.eval_on = 'val'
+# print(U.experiment_runs_statistics(project_variable.experiment_number,
+#                              project_variable.model_number, mode=project_variable.eval_on))

@@ -24,6 +24,8 @@ class ProjectVariable(object):
         self._load_model = None
         # only saves the model from the best run
         self._save_only_best_run = True
+        # saves all the models
+        self._save_all_models = False
 
         # which model to load. mapping in legend.txt
         self._model_number = None
@@ -289,6 +291,14 @@ class ProjectVariable(object):
     @save_only_best_run.setter
     def save_only_best_run(self, value):
         self._save_only_best_run = value
+
+    @property
+    def save_all_models(self):
+        return self._save_all_models
+
+    @save_all_models.setter
+    def save_all_models(self, value):
+        self._save_all_models = value
 
     @property
     def model_number(self):
