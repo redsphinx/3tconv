@@ -9,6 +9,7 @@ CURRENT PROJECT
 54  AlexNet-Taco
 55  basic 2D LeNet-5
 56  LeNet-5 3T
+57  SmallNet3T, small network using 3T layers for the purpose of investigating what 3T are learning
 
 Note: model 60 reserved already in previous project
 

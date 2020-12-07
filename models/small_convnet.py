@@ -1,6 +1,6 @@
 import torch
 from torch.nn.functional import relu
-from torch.nn import BatchNorm3d, AvgPool3d, Linear
+from torch.nn import BatchNorm3d, AvgPool3d, Linear, AdaptiveAvgPool3d
 
 from models.conv3t import ConvTTN3d
 from models.classic_conv3t import ConvTTN3d as classic_3tconv
@@ -113,3 +113,47 @@ class TACoNet(torch.nn.Module):
         y = self.fc2(h)
         return y
 
+# 57
+class SmallNet3T(torch.nn.Module):
+    def __init__(self, pv):
+        super(SmallNet3T, self).__init__()
+        self.conv1 = classic_3tconv(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=0, project_variable=pv, bias=False)
+        self.conv2 = classic_3tconv(in_channels=16, out_channels=20, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
+        self.conv3 = classic_3tconv(in_channels=20, out_channels=32, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
+        self.conv4 = classic_3tconv(in_channels=32, out_channels=3, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
+
+        self.pool = AdaptiveAvgPool3d(1)
+
+        if 'jester' in pv.dataset:
+            features_in = 48608
+        elif pv.dataset == 'ucf101':
+            features_in = 54880
+        elif pv.dataset == 'dots_avi':
+            features_in = 69420
+        else:
+            print('ERROR: Dataset not valid, features_in cannot be set')
+            features_in = None
+
+        self.fc1 = Linear(features_in, pv.label_size)
+
+
+    def forward(self, x, device, stop_at=None):
+        # print('1. ', x.shape)
+        h = self.conv1(x, device)
+        h = relu(h)
+        # print('2. ', h.shape)
+        h = self.conv2(h, device)
+        h = relu(h)
+        # print('3. ', h.shape)
+        h = self.conv3(h, device)
+        h = relu(h)
+        # print('4. ', h.shape)
+        h = self.conv4(h, device)
+        h = relu(h)
+
+        h = self.pool(h)
+
+        _shape = h.shape
+        y = h.view(-1, _shape[1] * _shape[2] * _shape[3] * _shape[4])
+
+        return y
