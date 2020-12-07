@@ -337,7 +337,7 @@ def run(project_variable):
                     if project_variable.early_stopping:
                         val_accuracy, val_loss = validation.run(project_variable, data, my_model, device)
                     else:
-                        print('!! val accuracy updated !!')
+                        # print('!! val accuracy updated !!')
                         val_accuracy = validation.run(project_variable, data, my_model, device)
                 # ------------------------------------------------------------------------------------------------
                 # ------------------------------------------------------------------------------------------------

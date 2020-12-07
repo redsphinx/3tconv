@@ -300,8 +300,7 @@ def e008_dots():
     project_variable.load_num_frames = 15
 
     project_variable.device = 0
-    # project_variable.end_epoch = 100
-    project_variable.end_epoch = 1
+    project_variable.end_epoch = 100
     project_variable.batch_size = 32
     project_variable.batch_size_val_test = 32
 
@@ -330,8 +329,8 @@ def e008_dots():
     main_file.run(project_variable)
 
 
-project_variable = ProjectVariable(debug_mode=True)
-# project_variable = ProjectVariable(debug_mode=False)
+# project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
 
 # e001_dots()
 # e002_dots()
