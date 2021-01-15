@@ -117,10 +117,12 @@ class TACoNet(torch.nn.Module):
 class SmallNet3T(torch.nn.Module):
     def __init__(self, pv):
         super(SmallNet3T, self).__init__()
-        self.conv1 = classic_3tconv(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=0, project_variable=pv, bias=False)
-        self.conv2 = classic_3tconv(in_channels=16, out_channels=20, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
-        self.conv3 = classic_3tconv(in_channels=20, out_channels=32, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
-        self.conv4 = classic_3tconv(in_channels=32, out_channels=3, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
+        self.conv1 = classic_3tconv(in_channels=3, out_channels=3, kernel_size=3, stride=1, padding=0, project_variable=pv, bias=False)
+        self.conv2 = classic_3tconv(in_channels=3, out_channels=3, kernel_size=3, stride=1, padding=0, project_variable=pv, bias=False)
+        # self.conv1 = classic_3tconv(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=0, project_variable=pv, bias=False)
+        # self.conv2 = classic_3tconv(in_channels=16, out_channels=20, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
+        # self.conv3 = classic_3tconv(in_channels=20, out_channels=32, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
+        # self.conv4 = classic_3tconv(in_channels=32, out_channels=3, kernel_size=5, stride=1, padding=0, project_variable=pv, bias=False)
 
         self.pool = AdaptiveAvgPool3d(1)
 
@@ -134,7 +136,7 @@ class SmallNet3T(torch.nn.Module):
             print('ERROR: Dataset not valid, features_in cannot be set')
             features_in = None
 
-        self.fc1 = Linear(features_in, pv.label_size)
+        # self.fc1 = Linear(features_in, pv.label_size)
 
 
     def forward(self, x, device, stop_at=None):
@@ -144,12 +146,12 @@ class SmallNet3T(torch.nn.Module):
         # print('2. ', h.shape)
         h = self.conv2(h, device)
         h = relu(h)
-        # print('3. ', h.shape)
-        h = self.conv3(h, device)
-        h = relu(h)
-        # print('4. ', h.shape)
-        h = self.conv4(h, device)
-        h = relu(h)
+        # # print('3. ', h.shape)
+        # h = self.conv3(h, device)
+        # h = relu(h)
+        # # print('4. ', h.shape)
+        # h = self.conv4(h, device)
+        # h = relu(h)
 
         h = self.pool(h)
 
