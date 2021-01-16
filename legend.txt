@@ -11,6 +11,7 @@ CURRENT PROJECT
 56  LeNet-5 3T
 57  SmallNet3T, small network using 3T layers for the purpose of investigating what 3T are learning
 
+
 Note: model 60 reserved already in previous project
 
 
@@ -20,8 +21,11 @@ from previous project:
 
 20  resnet18 3TConv
 21  resnet18 3DConv
+22  resnet18 3DConv reduced channels
 23  googlenet 3TConv
+24  VGG16 3TConv
 25  googlenet 3DConv
+26  googlenet 3TConv with special final layer
 
 # +---------+------------+--------------+
 # |         |   Jester   |    UCF101    |
