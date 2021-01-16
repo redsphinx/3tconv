@@ -153,3 +153,4 @@ def params_x_something(mult_w_filter, mult_w_image):
     return result
 
 
+params_x_something(mult_w_filter=True, mult_w_image=False)

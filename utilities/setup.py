@@ -15,7 +15,10 @@ from models.lenet5 import LeNet5_2d, LeNet5_3t
 def get_model(project_variable):
     # project_variable = ProjectVariable()
     if type(project_variable.load_model) == bool:
-        print('loading weights from torchvision model')
+        if project_variable.load_model:
+            print('loading weights from torchvision model')
+        else:
+            print('training from scratch')
     elif project_variable.load_model is not None:
         if len(project_variable.load_model) == 3:
             ex, mo, ep = project_variable.load_model

@@ -381,13 +381,124 @@ def e1014_3T_ucf101():
     utils.wait_for_gpu(wait=True, device_num=project_variable.device, threshold=9700)
     main_file.run(project_variable)
 
-project_variable = ProjectVariable(debug_mode=True)
-# project_variable = ProjectVariable(debug_mode=False)
+
+def e1015_3D_ucf101():
+    set_init_1()
+    project_variable.model_number = 25 # 3Dgooglenet from scratch
+    project_variable.experiment_number = 1015
+    project_variable.sheet_number = 23
+    project_variable.device = 0
+    project_variable.end_epoch = 100
+    project_variable.batch_size = 30
+    project_variable.batch_size_val_test = 30
+
+    project_variable.load_model = False  # exp, model, epoch, run
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.000005
+    project_variable.use_adaptive_lr = True
+
+    main_file.run(project_variable)
 
 
+def e1016_3D_ucf101():
+    set_init_1()
+    project_variable.model_number = 21 # 3Dresnet18 from scratch
+    project_variable.experiment_number = 1016
+    project_variable.sheet_number = 23
+    project_variable.device = 1
+    project_variable.end_epoch = 100
+    project_variable.batch_size = 25
+    project_variable.batch_size_val_test = 25
 
-# e1010_3T_ucf101()
-# e1011_3T_ucf101()
-# e1012_3T_ucf101()
-e1013_3T_ucf101()
-# e1014_3T_ucf101()
+    project_variable.load_model = False  # exp, model, epoch, run
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.000005
+    project_variable.use_adaptive_lr = True
+
+    main_file.run(project_variable)
+
+
+def e1017_3D_ucf101():
+    set_init_1()
+    project_variable.model_number = 25 # 3Dgooglenet from scratch
+    project_variable.experiment_number = 1017
+    project_variable.sheet_number = 23
+    project_variable.device = 0
+    project_variable.end_epoch = 100
+    project_variable.batch_size = 20
+    project_variable.batch_size_val_test = 20
+
+    project_variable.load_model = False  # exp, model, epoch, run
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.000005
+    project_variable.use_adaptive_lr = True
+
+    main_file.run(project_variable)
+
+
+def e1018_3D_ucf101():
+    set_init_1()
+    project_variable.model_number = 25 # 3Dgooglenet from 1017
+    project_variable.experiment_number = 1018
+    project_variable.sheet_number = 23
+    project_variable.device = 0
+    project_variable.end_epoch = 100
+    project_variable.batch_size = 20
+    project_variable.batch_size_val_test = 20
+
+    project_variable.load_model = [1017, 25, 21, 0]  # exp, model, epoch, run
+    project_variable.load_from_fast = True
+
+    project_variable.use_dali = True
+    project_variable.dali_workers = 32
+    project_variable.dali_iterator_size = ['all', 'all', 0]
+    project_variable.nas = False
+
+    project_variable.stop_at_collapse = True
+    project_variable.early_stopping = True
+
+    project_variable.optimizer = 'adam'
+    project_variable.learning_rate = 0.000005
+    project_variable.use_adaptive_lr = True
+
+    main_file.run(project_variable)
+
+
+# project_variable = ProjectVariable(debug_mode=True)
+project_variable = ProjectVariable(debug_mode=False)
+
+
+# e1015_3D_ucf101() # crashed on erdi-home
+# e1016_3D_ucf101()     # godel
+# e1017_3D_ucf101()   # erdi-home, crashed, continue as 1018
+e1018_3D_ucf101()
