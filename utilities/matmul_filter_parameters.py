@@ -16,12 +16,39 @@ results2 = params x (filter * input)
 device = None
 out_channels = 1
 in_channels = 1
+save_path = '/home/gabras/3tconv/utilities/sanity_check_matmul_filter'
 
-kernel_size = (1, 5, 5)
+
+
+kernel_size = (1, 3, 3)
 
 filter = np.zeros((1, 1, kernel_size[1], kernel_size[2]), dtype=float)
-filter[0, 0] = np.array([[0, 0, 0, 0, 0], [0, 1, 0, -1, 0], [0, 2, 0, -2, 0], [0, 1, 0, -1, 0], [0, 0, 0, 0, 0]])
+filter[0, 0] = np.array([[1, 0, -1],
+                         [2, 0, -2],
+                         [1, 0, -1]
+                         ])
+# kernel_size = (1, 5, 5)
+#
+# filter = np.zeros((1, 1, kernel_size[1], kernel_size[2]), dtype=float)
+# filter[0, 0] = np.array([[0, 0, 0, 0, 0],
+#                          [0, 1, 0, -1, 0],
+#                          [0, 2, 0, -2, 0],
+#                          [0, 1, 0, -1, 0],
+#                          [0, 0, 0, 0, 0]])
 filter = torch.from_numpy(filter)
+
+
+
+filter2 = np.zeros((1, 1, kernel_size[1], kernel_size[2]), dtype=float)
+filter2[0, 0] = np.array([[1, 2, 1],
+                         [0, 0, 0],
+                         [-1, -2, -1]
+                         ])
+
+filter2 = torch.from_numpy(filter2)
+
+
+
 
 image_size = (1, 256, 256)
 image = np.array(Image.open('/home/gabras/3tconv/utilities/doggo.jpg').convert('L'))
@@ -162,7 +189,6 @@ def params_x_something(mult_w_filter, mult_w_image):
     print('result', result.shape)
 
     if save:
-        save_path = '/home/gabras/3tconv/utilities/sanity_check_matmul_filter'
         img = Image.fromarray(np.array(result[0][0].cpu(), dtype=np.uint8), mode='L')
         name = 'test.jpg'
         img.save(os.path.join(save_path, name))
@@ -171,4 +197,32 @@ def params_x_something(mult_w_filter, mult_w_image):
 
 
 # params_x_something(mult_w_filter=True, mult_w_image=False)  # works!
-params_x_something(mult_w_filter=False, mult_w_image=True)
+# params_x_something(mult_w_filter=False, mult_w_image=True)  # works!
+
+def filter_x_image():
+    the_image = image.cuda(device)
+    the_filter = filter.cuda(device)
+    the_filter2 = filter2.cuda(device)
+
+
+    the_image = the_image.type(torch.float32)
+    the_filter = the_filter.type(torch.float32)
+    the_filter2 = the_filter2.type(torch.float32)
+
+    result_conv2d = F.conv2d(the_image, the_filter, stride=1)
+    result2_conv2d = F.conv2d(the_image, the_filter2, stride=1)
+
+    result1 = np.array(result_conv2d[0][0].cpu())
+    result2 = np.array(result2_conv2d[0][0].cpu())
+
+    result = np.sqrt(np.square(result1)+np.square(result2))
+
+    # img = Image.fromarray(np.array(result_conv2d[0][0].cpu()), mode='L')
+    img = Image.fromarray(result, mode='L')
+    # name = 'filter_x_image.jpg'
+    name = 'sobel.jpg'
+    img.save(os.path.join(save_path, name))
+
+
+
+filter_x_image()
