@@ -1,6 +1,8 @@
+import os
 from torch.nn import functional as F
 import numpy as np
 import torch
+from PIL import Image
 
 
 '''
@@ -21,13 +23,16 @@ filter = np.zeros((1, 1, kernel_size[1], kernel_size[2]), dtype=float)
 filter[0, 0] = np.array([[0, 0, 0, 0, 0], [0, 1, 0, -1, 0], [0, 2, 0, -2, 0], [0, 1, 0, -1, 0], [0, 0, 0, 0, 0]])
 filter = torch.from_numpy(filter)
 
-image_size = (1, 100, 100)
-image = None
+image_size = (1, 256, 256)
+image = np.array(Image.open('/home/gabras/3tconv/utilities/doggo.jpg').convert('L'))
+image = torch.from_numpy(image)
+image = image.unsqueeze(0)
+image = image.unsqueeze(0)
 
-scale = None
-rotate = None
-translate_x = None
-translate_y = None
+scale = torch.from_numpy(np.array([0.5], dtype=float)).unsqueeze(0)
+rotate = torch.from_numpy(np.array([0], dtype=float)).unsqueeze(0)
+translate_x = torch.from_numpy(np.array([0], dtype=float)).unsqueeze(0)
+translate_y = torch.from_numpy(np.array([0], dtype=float)).unsqueeze(0)
 
 
 def make_affine_matrix(scale, rotate, translate_x, translate_y):
@@ -73,17 +78,16 @@ def make_grid(grid, theta, something):
     try:
         if torch.__version__ == '1.2.0':
             _ = F.affine_grid(theta[0],
-                              [out_channels, something[0] - 1, something[1],
+                              [out_channels, something[0], something[1],
                                something[2]])
         else:
             _ = F.affine_grid(theta[0],
-                              [out_channels, something[0]-1, something[1],
-                               something[2]], align_corners=True)
+                              [out_channels, something[0], something[1], something[2]], align_corners=True)
     except RuntimeError:
         torch.backends.cudnn.deterministic = True
         print('ok cudnn')
 
-    if something[0] > 1:
+    if something[0] < 2:
         if torch.__version__ == '1.2.0':
             tmp = F.affine_grid(theta[0],
                                 [out_channels, something[0], something[1],
@@ -108,36 +112,40 @@ def make_grid(grid, theta, something):
 
             grid = torch.cat((grid, tmp.unsqueeze(0)), 0)
 
-    return grid
+    return grid, theta
     
 
-
 def params_x_something(mult_w_filter, mult_w_image):
+
     if mult_w_filter:
         something_size = kernel_size
         something = filter
     elif mult_w_image:
         something_size = image_size
         something = image
+        save = True
     else:
         print('ERROR: something is not defined')
         something_size = None
         something = None
+        save = False
+
+    something = something.cuda(device)
+    something = something.type(torch.float32)
 
     theta = torch.zeros((1, out_channels, 2, 3))
     theta = theta.cuda(device)
 
     grid = torch.zeros((1, out_channels, something_size[1], something_size[2], 2))
     grid = grid.cuda(device)
-    grid = make_grid(grid, theta, something_size)
+    grid, new_theta = make_grid(grid, theta, something_size)
     grid = grid[1:]
 
     try:
         if torch.__version__ == '1.2.0':
             _ = F.grid_sample(something[:, :, 0], grid[0], mode='bilinear', padding_mode='zeros')
         else:
-            _ = F.grid_sample(something[:, :, 0], grid[0], mode='bilinear', padding_mode='zeros',
-                              align_corners=True)
+            _ = F.grid_sample(something, grid[0], mode='bilinear', padding_mode='zeros', align_corners=True)
     except RuntimeError:
         torch.backends.cudnn.deterministic = True
         print('ok cudnn')
@@ -146,11 +154,21 @@ def params_x_something(mult_w_filter, mult_w_image):
     if torch.__version__ == '1.2.0':
         result = F.grid_sample(something[:, :, -1], grid, mode='bilinear', padding_mode='zeros')
     else:
-        result = F.grid_sample(something[:, :, -1], grid, mode='bilinear', padding_mode='zeros',
-                               align_corners=True)
+        result = F.grid_sample(something, grid[0], mode='bilinear', padding_mode='zeros', align_corners=True)
 
+
+    print('something', something.shape)
+    print('thata', new_theta.shape)
+    print('result', result.shape)
+
+    if save:
+        save_path = '/home/gabras/3tconv/utilities/sanity_check_matmul_filter'
+        img = Image.fromarray(np.array(result[0][0].cpu(), dtype=np.uint8), mode='L')
+        name = 'test.jpg'
+        img.save(os.path.join(save_path, name))
 
     return result
 
 
-params_x_something(mult_w_filter=True, mult_w_image=False)
+# params_x_something(mult_w_filter=True, mult_w_image=False)  # works!
+params_x_something(mult_w_filter=False, mult_w_image=True)
